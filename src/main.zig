@@ -84,6 +84,8 @@ var ball_vel: Vec2 = .{
 
 var bricks: [Config.brick_count]Brick = undefined;
 
+var score: u8 = 0;
+
 pub fn main() void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
     defer r.closeWindow();
@@ -142,16 +144,16 @@ pub fn main() void {
         const ball_moving_down = ball_vel.y > 0;
 
         // Circle vs paddle AABB overlap checks
-        const ball_below_top = (ball_pos.y + Config.ball_radius) >= paddle_top; // ball's bottom passed paddle top
-        const ball_right_of_left = (ball_pos.x + Config.ball_radius) >= paddle_left; // ball's right passed paddle left edge
-        const ball_left_of_right = (ball_pos.x - Config.ball_radius) <= paddle_right; // ball's left passed paddle right edge
-        const ball_above_bottom = ball_pos.y <= paddle_bottom; // ball center not below paddle bottom
+        const ball_below_paddle_top = (ball_pos.y + Config.ball_radius) >= paddle_top; // ball's bottom passed paddle top
+        const ball_right_of_paddle_left = (ball_pos.x + Config.ball_radius) >= paddle_left; // ball's right passed paddle left edge
+        const ball_left_of_paddle_right = (ball_pos.x - Config.ball_radius) <= paddle_right; // ball's left passed paddle right edge
+        const ball_above_paddle_bottom = ball_pos.y <= paddle_bottom; // ball center not below paddle bottom
 
         if (ball_moving_down and
-            ball_below_top and
-            ball_right_of_left and
-            ball_left_of_right and
-            ball_above_bottom)
+            ball_below_paddle_top and
+            ball_right_of_paddle_left and
+            ball_left_of_paddle_right and
+            ball_above_paddle_bottom)
         {
             ball_pos.y = paddle_top - Config.ball_radius;
 
@@ -167,7 +169,25 @@ pub fn main() void {
             ball_vel.y = -@cos(angle) * Config.ball_max_speed;
         }
 
-        // TODO: brick collision (AABB vs circle) and mark bricks[i].alive = fa
+        for (bricks, 0..) |brick, i| {
+            const ball_below_brick_top = (ball_pos.y - Config.ball_radius) >= brick.y; // ball's bottom below brick top
+            const ball_above_brick_bottom = (ball_pos.y + Config.ball_radius) <= (brick.y + brick.h); // ball's top is above brick bottom
+            const ball_left_of_brick_left = (ball_pos.x + Config.ball_radius) >= brick.x;
+            const ball_right_of_brick_right = (ball_pos.x - Config.ball_radius) <= (brick.x + brick.w);
+
+            if (ball_below_brick_top and
+                ball_above_brick_bottom and
+                ball_left_of_brick_left and
+                ball_right_of_brick_right and
+                brick.alive)
+            {
+                bricks[i].alive = false;
+                score += 1;
+
+                // bounce
+                ball_vel.y = -ball_vel.y;
+            }
+        }
 
         // ball
         ball_pos.x += ball_vel.x * dt;
@@ -217,6 +237,10 @@ pub fn main() void {
                 color,
             );
         }
+
+        var buf: [16]u8 = undefined;
+        const text = std.fmt.bufPrintZ(&buf, "{}", .{score}) catch unreachable;
+        r.drawText(text, Config.side_margin, 20, 30, .white);
     }
 }
 
