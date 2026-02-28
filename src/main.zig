@@ -37,7 +37,7 @@ const Config = struct {
 // -----------------------------
 const Theme = struct {
     // Backgrounds
-    pub const bg_hex: u32 = 0x000000FF; // pure black
+    pub const bg_hex: u32 = 0x000000ff; // pure black
 
     // Player objects
     pub const paddle_hex: u32 = 0xFFFFFFFF; // white paddle
@@ -98,8 +98,23 @@ pub fn main() void {
 
     initBricks();
 
+    var bigBallEffect: bool = false;
+    var bigBallEffectTime: f32 = 0.0;
+
     while (!r.windowShouldClose()) {
         const dt: f32 = r.getFrameTime();
+
+		if (bigBallEffect) {
+		        bigBallEffectTime += dt;
+		
+		        if (bigBallEffectTime >= 3.0) {
+		            bigBallEffect = false;
+		            bigBallEffectTime = 0.0;
+		        }
+		    }
+		
+        
+        const ball_size = if (bigBallEffect) (Config.ball_radius + 5) else Config.ball_radius;
 
         // paddle movement
         var dir: f32 = 0.0;
@@ -127,16 +142,16 @@ pub fn main() void {
         const paddle_left: f32 = paddle_pos.x;
         const paddle_right: f32 = paddle_pos.x + pw;
 
-        const ball_top: f32 = next_ball_pos.y - Config.ball_radius;
-        const ball_bottom: f32 = next_ball_pos.y + Config.ball_radius;
-        const ball_left: f32 = next_ball_pos.x - Config.ball_radius;
-        const ball_right: f32 = next_ball_pos.x + Config.ball_radius;
+        const ball_top: f32 = next_ball_pos.y - ball_size;
+        const ball_bottom: f32 = next_ball_pos.y + ball_size;
+        const ball_left: f32 = next_ball_pos.x - ball_size;
+        const ball_right: f32 = next_ball_pos.x + ball_size;
 
         // screen border bounce
 
         // top wall
         if (ball_top <= 0) {
-            next_ball_pos.y = Config.ball_radius;
+            next_ball_pos.y = ball_size;
             ball_vel.y = -ball_vel.y;
         }
 
@@ -144,10 +159,10 @@ pub fn main() void {
         const sw = @as(f32, Config.screen_w);
 
         if (ball_left <= 0) {
-            next_ball_pos.x = Config.ball_radius;
+            next_ball_pos.x = ball_size;
             ball_vel.x = -ball_vel.x;
         } else if (ball_right >= sw) {
-            next_ball_pos.x = sw - Config.ball_radius;
+            next_ball_pos.x = sw - ball_size;
             ball_vel.x = -ball_vel.x;
         }
 
@@ -169,7 +184,7 @@ pub fn main() void {
             ball_left_of_paddle_right and
             ball_above_paddle_bottom)
         {
-            next_ball_pos.y = paddle_top - Config.ball_radius;
+            next_ball_pos.y = paddle_top - ball_size;
 
             // keep hit in [-1, 1]
             var hit: f32 = (next_ball_pos.x - paddle_center_x) / (pw * 0.5);
@@ -202,6 +217,12 @@ pub fn main() void {
             {
                 bricks[i].alive = false;
                 score += 1;
+
+                const randomNumber: u32 = std.crypto.random.uintLessThan(u8, 3);
+                if (randomNumber == 2) {
+                	// in the future you can have BallEffects array
+                	bigBallEffect = true;
+                }
 
                 // Calculate smallest penetration in X and Y to determine collision axis (least push-out direction)
                 const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
@@ -244,7 +265,7 @@ pub fn main() void {
         r.drawCircle(
             @intFromFloat(ball_pos.x),
             @intFromFloat(ball_pos.y),
-            Config.ball_radius,
+            ball_size,
             Theme.col(Theme.ball_hex),
         );
 
