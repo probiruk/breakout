@@ -6,10 +6,23 @@ pub fn build(b: *std.Build) void {
 
     const exe_mod = b.createModule(.{ .root_source_file = b.path("./src//main.zig"), .target = targets, .optimize = optimize });
 
-    const exe = b.addExecutable(.{ .name = "breakout", .root_module = exe_mod });
+    var exe_opts = std.Build.ExecutableOptions{
+        .name = "breakout",
+        .root_module = exe_mod,
+    };
+    if (targets.result.os.tag == .linux) {
+        exe_opts.use_llvm = true;
+        exe_opts.use_lld = true;
+    }
+
+    const exe = b.addExecutable(exe_opts);
 
     // --- raylib-zig dependency ---
-    const raylib_dep = b.dependency("raylib_zig", .{ .target = targets, .optimize = optimize });
+    const raylib_dep = b.dependency("raylib_zig", .{
+        .target = targets,
+        .optimize = optimize,
+        .linux_display_backend = .Both,
+    });
     const raylib = raylib_dep.module("raylib");
     const raylib_artifact = raylib_dep.artifact("raylib");
 

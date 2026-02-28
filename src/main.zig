@@ -89,6 +89,10 @@ var score: u32 = 0;
 pub fn main() void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
     defer r.closeWindow();
+    if (!r.isWindowReady()) {
+        std.log.err("Failed to initialize window/OpenGL context. Check X11/GLX setup.", .{});
+        return;
+    }
 
     r.setTargetFPS(Config.fps);
 
