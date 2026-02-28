@@ -1,0 +1,6 @@
+# Zig build outputs
+zig-out/
+.zig-cache/
+
+# OS garbage
+.DS_Store
