@@ -110,6 +110,11 @@ pub fn main() void {
             paddle_pos.x = next_x; // keep paddle inside screen bounds
         }
 
+        var next_ball_pos: Vec2 = .{
+            .x = ball_pos.x + ball_vel.x * dt,
+            .y = ball_pos.y + ball_vel.y * dt,
+        };
+
         const pw: f32 = @as(f32, Config.paddle_w);
         const ph: f32 = @as(f32, Config.paddle_h);
 
@@ -118,16 +123,16 @@ pub fn main() void {
         const paddle_left: f32 = paddle_pos.x;
         const paddle_right: f32 = paddle_pos.x + pw;
 
-        const ball_top: f32 = ball_pos.y - Config.ball_radius;
-        const ball_bottom: f32 = ball_pos.y + Config.ball_radius;
-        const ball_left: f32 = ball_pos.x - Config.ball_radius;
-        const ball_right: f32 = ball_pos.x + Config.ball_radius;
+        const ball_top: f32 = next_ball_pos.y - Config.ball_radius;
+        const ball_bottom: f32 = next_ball_pos.y + Config.ball_radius;
+        const ball_left: f32 = next_ball_pos.x - Config.ball_radius;
+        const ball_right: f32 = next_ball_pos.x + Config.ball_radius;
 
         // screen border bounce
 
         // top wall
         if (ball_top <= 0) {
-            ball_pos.y = Config.ball_radius;
+            next_ball_pos.y = Config.ball_radius;
             ball_vel.y = -ball_vel.y;
         }
 
@@ -135,10 +140,10 @@ pub fn main() void {
         const sw = @as(f32, Config.screen_w);
 
         if (ball_left <= 0) {
-            ball_pos.x = Config.ball_radius;
+            next_ball_pos.x = Config.ball_radius;
             ball_vel.x = -ball_vel.x;
         } else if (ball_right >= sw) {
-            ball_pos.x = sw - Config.ball_radius;
+            next_ball_pos.x = sw - Config.ball_radius;
             ball_vel.x = -ball_vel.x;
         }
 
@@ -152,7 +157,7 @@ pub fn main() void {
         const ball_below_paddle_top = ball_bottom >= paddle_top; // ball's bottom passed paddle top
         const ball_right_of_paddle_left = ball_right >= paddle_left; // ball's right passed paddle left edge
         const ball_left_of_paddle_right = ball_left <= paddle_right; // ball's left passed paddle right edge
-        const ball_above_paddle_bottom = ball_pos.y <= paddle_bottom; // ball center not below paddle bottom
+        const ball_above_paddle_bottom = ball_top <= paddle_bottom; // ball center not below paddle bottom
 
         if (ball_moving_down and
             ball_below_paddle_top and
@@ -160,10 +165,10 @@ pub fn main() void {
             ball_left_of_paddle_right and
             ball_above_paddle_bottom)
         {
-            ball_pos.y = paddle_top - Config.ball_radius;
+            next_ball_pos.y = paddle_top - Config.ball_radius;
 
             // keep hit in [-1, 1]
-            var hit: f32 = (ball_pos.x - paddle_center_x) / (pw * 0.5);
+            var hit: f32 = (next_ball_pos.x - paddle_center_x) / (pw * 0.5);
             if (hit < -1) hit = -1;
             if (hit > 1) hit = 1;
 
@@ -183,13 +188,13 @@ pub fn main() void {
 
             const ball_below_brick_top = ball_bottom >= brick_top;
             const ball_above_brick_bottom = ball_top <= brick_bottom;
-            const ball_left_of_brick_left = ball_right >= brick_left;
-            const ball_right_of_brick_right = ball_left <= brick_right;
+            const ball_right_past_brick_left = ball_right >= brick_left;
+            const ball_left_before_brick_right = ball_left <= brick_right;
 
             if (ball_below_brick_top and
                 ball_above_brick_bottom and
-                ball_left_of_brick_left and
-                ball_right_of_brick_right)
+                ball_right_past_brick_left and
+                ball_left_before_brick_right)
             {
                 bricks[i].alive = false;
                 score += 1;
@@ -198,19 +203,24 @@ pub fn main() void {
                 const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
                 const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
 
+                // Center of the brick in X and Y axis.
+                const brick_cx = (brick_left + brick_right) * 0.5;
+                const brick_cy = (brick_top + brick_bottom) * 0.5;
+
                 // Bounce on the axis with smaller overlap (side hit -> flip X, top/bottom hit -> flip Y)
                 if (overlap_x < overlap_y) {
                     ball_vel.x = -ball_vel.x;
+                    next_ball_pos.x += if (next_ball_pos.x < brick_cx) -overlap_x else overlap_x;
                 } else {
                     ball_vel.y = -ball_vel.y;
+                    next_ball_pos.y += if (next_ball_pos.y < brick_cy) -overlap_y else overlap_y;
                 }
                 break;
             }
         }
 
         // ball
-        ball_pos.x += ball_vel.x * dt;
-        ball_pos.y += ball_vel.y * dt;
+        ball_pos = next_ball_pos;
 
         // draw
 
