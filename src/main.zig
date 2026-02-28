@@ -70,6 +70,11 @@ const Brick = struct {
     alive: bool,
 };
 
+const EffectType = enum { BigBall, FastBall };
+
+const Effect = struct { type: EffectType, duration: f32, time: f32 };
+
+// const alloc = std.heap.GeneralPurposeAllocator(.{}){};
 // -----------------------------
 // Game state (changes at runtime)
 // -----------------------------
@@ -86,7 +91,7 @@ var bricks: [Config.brick_count]Brick = undefined;
 
 var score: u32 = 0;
 
-pub fn main() void {
+pub fn main() anyerror!void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
     defer r.closeWindow();
     if (!r.isWindowReady()) {
@@ -98,8 +103,30 @@ pub fn main() void {
 
     initBricks();
 
+    var effects: std.ArrayList(Effect) = .{};
+
     while (!r.windowShouldClose()) {
         const dt: f32 = r.getFrameTime();
+
+        var ball_size = Config.ball_radius;
+        var ball_speed = Config.ball_max_speed;
+
+        for (effects.items, 0..) |*effect, index| {
+            switch (effect.type) {
+                EffectType.BigBall => {
+                    ball_size += 10;
+                },
+                EffectType.FastBall => {
+                    ball_speed += 10;
+                },
+            }
+
+            effect.time += dt;
+            if (effect.time >= effect.duration) {
+                if (effects.items.len <= index) continue;
+                _ = effects.orderedRemove(index);
+            }
+        }
 
         // paddle movement
         var dir: f32 = 0.0;
@@ -127,16 +154,16 @@ pub fn main() void {
         const paddle_left: f32 = paddle_pos.x;
         const paddle_right: f32 = paddle_pos.x + pw;
 
-        const ball_top: f32 = next_ball_pos.y - Config.ball_radius;
-        const ball_bottom: f32 = next_ball_pos.y + Config.ball_radius;
-        const ball_left: f32 = next_ball_pos.x - Config.ball_radius;
-        const ball_right: f32 = next_ball_pos.x + Config.ball_radius;
+        const ball_top: f32 = next_ball_pos.y - ball_size;
+        const ball_bottom: f32 = next_ball_pos.y + ball_size;
+        const ball_left: f32 = next_ball_pos.x - ball_size;
+        const ball_right: f32 = next_ball_pos.x + ball_size;
 
         // screen border bounce
 
         // top wall
         if (ball_top <= 0) {
-            next_ball_pos.y = Config.ball_radius;
+            next_ball_pos.y = ball_size;
             ball_vel.y = -ball_vel.y;
         }
 
@@ -144,10 +171,10 @@ pub fn main() void {
         const sw = @as(f32, Config.screen_w);
 
         if (ball_left <= 0) {
-            next_ball_pos.x = Config.ball_radius;
+            next_ball_pos.x = ball_size;
             ball_vel.x = -ball_vel.x;
         } else if (ball_right >= sw) {
-            next_ball_pos.x = sw - Config.ball_radius;
+            next_ball_pos.x = sw - ball_size;
             ball_vel.x = -ball_vel.x;
         }
 
@@ -169,7 +196,7 @@ pub fn main() void {
             ball_left_of_paddle_right and
             ball_above_paddle_bottom)
         {
-            next_ball_pos.y = paddle_top - Config.ball_radius;
+            next_ball_pos.y = paddle_top - ball_size;
 
             // keep hit in [-1, 1]
             var hit: f32 = (next_ball_pos.x - paddle_center_x) / (pw * 0.5);
@@ -179,8 +206,8 @@ pub fn main() void {
             // map hit position [-1..1] to bounce angle [-max_angle..max_angle]
             const angle: f32 = hit * Config.max_bounce_angle;
 
-            ball_vel.x = @sin(angle) * Config.ball_max_speed;
-            ball_vel.y = -@cos(angle) * Config.ball_max_speed;
+            ball_vel.x = @sin(angle) * ball_speed;
+            ball_vel.y = -@cos(angle) * ball_speed;
         }
 
         for (bricks, 0..) |brick, i| {
@@ -203,6 +230,8 @@ pub fn main() void {
                 bricks[i].alive = false;
                 score += 1;
 
+                try newPotentialEffect(&effects);
+
                 // Calculate smallest penetration in X and Y to determine collision axis (least push-out direction)
                 const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
                 const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
@@ -210,6 +239,8 @@ pub fn main() void {
                 // Center of the brick in X and Y axis.
                 const brick_cx = (brick_left + brick_right) * 0.5;
                 const brick_cy = (brick_top + brick_bottom) * 0.5;
+
+                if (hasEffect(&effects, EffectType.BigBall)) continue;
 
                 // Bounce on the axis with smaller overlap (side hit -> flip X, top/bottom hit -> flip Y)
                 if (overlap_x < overlap_y) {
@@ -244,7 +275,7 @@ pub fn main() void {
         r.drawCircle(
             @intFromFloat(ball_pos.x),
             @intFromFloat(ball_pos.y),
-            Config.ball_radius,
+            ball_size,
             Theme.col(Theme.ball_hex),
         );
 
@@ -274,6 +305,40 @@ pub fn main() void {
         var buf: [16]u8 = undefined;
         const text = std.fmt.bufPrintZ(&buf, "{}", .{score}) catch unreachable;
         r.drawText(text, Config.side_margin, 20, 30, .white);
+    }
+}
+
+fn hasEffect(list: *std.ArrayList(Effect), etype: EffectType) bool {
+    for (list.items) |*eff| {
+        if (eff.type == etype) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+fn addEffect(list: *std.ArrayList(Effect), effect: Effect) anyerror!void {
+    const alloc = std.heap.page_allocator;
+
+    for (list.items) |*eff| {
+        if (eff.type == effect.type) {
+            eff.duration += effect.duration;
+            return;
+        }
+    }
+
+    try list.append(alloc, effect);
+}
+
+fn newPotentialEffect(list: *std.ArrayList(Effect)) anyerror!void {
+    const randInt = std.crypto.random.uintLessThan(u8, 7);
+
+    if (randInt == 2) {
+        try addEffect(list, .{ .type = EffectType.BigBall, .duration = 3.0, .time = 0.0 });
+    }
+    if (randInt == 3) {
+        try addEffect(list, .{ .type = EffectType.FastBall, .duration = 3.0, .time = 0.0 });
     }
 }
 
