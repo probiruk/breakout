@@ -113,15 +113,20 @@ pub fn main() void {
         const pw: f32 = @as(f32, Config.paddle_w);
         const ph: f32 = @as(f32, Config.paddle_h);
 
-        const paddle_left: f32 = paddle_pos.x;
-        const paddle_right: f32 = paddle_pos.x + pw;
         const paddle_top: f32 = paddle_pos.y;
         const paddle_bottom: f32 = paddle_pos.y + ph;
+        const paddle_left: f32 = paddle_pos.x;
+        const paddle_right: f32 = paddle_pos.x + pw;
 
-        // bounce
+        const ball_top: f32 = ball_pos.y - Config.ball_radius;
+        const ball_bottom: f32 = ball_pos.y + Config.ball_radius;
+        const ball_left: f32 = ball_pos.x - Config.ball_radius;
+        const ball_right: f32 = ball_pos.x + Config.ball_radius;
+
+        // screen border bounce
 
         // top wall
-        if (ball_pos.y - Config.ball_radius <= 0) {
+        if (ball_top <= 0) {
             ball_pos.y = Config.ball_radius;
             ball_vel.y = -ball_vel.y;
         }
@@ -129,10 +134,10 @@ pub fn main() void {
         // left / right wall
         const sw = @as(f32, Config.screen_w);
 
-        if (ball_pos.x - Config.ball_radius <= 0) {
+        if (ball_left <= 0) {
             ball_pos.x = Config.ball_radius;
             ball_vel.x = -ball_vel.x;
-        } else if (ball_pos.x + Config.ball_radius >= sw) {
+        } else if (ball_right >= sw) {
             ball_pos.x = sw - Config.ball_radius;
             ball_vel.x = -ball_vel.x;
         }
@@ -144,9 +149,9 @@ pub fn main() void {
         const ball_moving_down = ball_vel.y > 0;
 
         // Circle vs paddle AABB overlap checks
-        const ball_below_paddle_top = (ball_pos.y + Config.ball_radius) >= paddle_top; // ball's bottom passed paddle top
-        const ball_right_of_paddle_left = (ball_pos.x + Config.ball_radius) >= paddle_left; // ball's right passed paddle left edge
-        const ball_left_of_paddle_right = (ball_pos.x - Config.ball_radius) <= paddle_right; // ball's left passed paddle right edge
+        const ball_below_paddle_top = ball_bottom >= paddle_top; // ball's bottom passed paddle top
+        const ball_right_of_paddle_left = ball_right >= paddle_left; // ball's right passed paddle left edge
+        const ball_left_of_paddle_right = ball_left <= paddle_right; // ball's left passed paddle right edge
         const ball_above_paddle_bottom = ball_pos.y <= paddle_bottom; // ball center not below paddle bottom
 
         if (ball_moving_down and
@@ -170,22 +175,36 @@ pub fn main() void {
         }
 
         for (bricks, 0..) |brick, i| {
-            const ball_below_brick_top = (ball_pos.y - Config.ball_radius) >= brick.y; // ball's bottom below brick top
-            const ball_above_brick_bottom = (ball_pos.y + Config.ball_radius) <= (brick.y + brick.h); // ball's top is above brick bottom
-            const ball_left_of_brick_left = (ball_pos.x + Config.ball_radius) >= brick.x;
-            const ball_right_of_brick_right = (ball_pos.x - Config.ball_radius) <= (brick.x + brick.w);
+            if (!brick.alive) continue;
+            const brick_top: f32 = brick.y;
+            const brick_bottom: f32 = brick.y + brick.h;
+            const brick_left: f32 = brick.x;
+            const brick_right: f32 = brick.x + brick.w;
+
+            const ball_below_brick_top = ball_top >= brick_top; // ball's bottom below brick top
+            const ball_above_brick_bottom = ball_bottom <= brick_bottom; // ball's top is above brick bottom
+            const ball_left_of_brick_left = ball_right >= brick_left;
+            const ball_right_of_brick_right = ball_left <= brick_right;
 
             if (ball_below_brick_top and
                 ball_above_brick_bottom and
                 ball_left_of_brick_left and
-                ball_right_of_brick_right and
-                brick.alive)
+                ball_right_of_brick_right)
             {
                 bricks[i].alive = false;
                 score += 1;
 
-                // bounce
-                ball_vel.y = -ball_vel.y;
+                // Calculate smallest penetration in X and Y to determine collision axis (least push-out direction)
+                const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
+                const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
+
+                // Bounce on the axis with smaller overlap (side hit -> flip X, top/bottom hit -> flip Y)
+                if (overlap_x < overlap_y) {
+                    ball_vel.x = -ball_vel.x;
+                } else {
+                    ball_vel.y = -ball_vel.y;
+                }
+                break;
             }
         }
 
