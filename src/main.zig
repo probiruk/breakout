@@ -84,7 +84,7 @@ var ball_vel: Vec2 = .{
 
 var bricks: [Config.brick_count]Brick = undefined;
 
-var score: u8 = 0;
+var score: u32 = 0;
 
 pub fn main() void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
@@ -181,8 +181,8 @@ pub fn main() void {
             const brick_left: f32 = brick.x;
             const brick_right: f32 = brick.x + brick.w;
 
-            const ball_below_brick_top = ball_top >= brick_top; // ball's bottom below brick top
-            const ball_above_brick_bottom = ball_bottom <= brick_bottom; // ball's top is above brick bottom
+            const ball_below_brick_top = ball_bottom >= brick_top;
+            const ball_above_brick_bottom = ball_top <= brick_bottom;
             const ball_left_of_brick_left = ball_right >= brick_left;
             const ball_right_of_brick_right = ball_left <= brick_right;
 
