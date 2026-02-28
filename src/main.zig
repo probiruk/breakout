@@ -17,9 +17,9 @@ const Config = struct {
 
     // Ball
     pub const ball_radius: f32 = 6.5;
-    pub const ball_max_speed: f32 = 220.0; // clamp target speed after paddle bounce
-    pub const max_bounce_angle: f32 = 50.0 * (std.math.pi / 180.0); // radians
-    pub const launch_angle: f32 = 25.0 * (std.math.pi / 180.0); // radians
+    pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
+    pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians
+    pub const launch_angle: f32 = 30.0 * (std.math.pi / 180.0); // radians
 
     // Bricks layout
     pub const side_margin: f32 = 30.0;
