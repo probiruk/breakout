@@ -14,7 +14,7 @@ pub const Config = struct {
 
     // Paddle
     pub const paddle_w: f32 = 70.0;
-    pub const paddle_h: f32 = 5.0;
+    pub const paddle_h: f32 = 14.0;
     pub const paddle_speed: f32 = 400.0; // pixels per second
     pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
 

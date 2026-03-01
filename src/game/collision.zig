@@ -16,7 +16,7 @@ pub fn resolveBrickCollision(
     const ball_right: f32 = next_ball_pos.x + ball_size;
 
     for (state.bricks, 0..) |brick, i| {
-        if (!brick.alive) continue;
+        if (brick.hp == 0) continue;
         const brick_top: f32 = brick.y;
         const brick_bottom: f32 = brick.y + brick.h;
         const brick_left: f32 = brick.x;
@@ -32,18 +32,24 @@ pub fn resolveBrickCollision(
             ball_right_past_brick_left and
             ball_left_before_brick_right)
         {
-            state.bricks[i].alive = false;
+            const has_big_ball = game_effects.hasEffect(EffectType.BigBall);
+
+            if (has_big_ball) {
+                state.bricks[i].hp = 0;
+            } else {
+                state.bricks[i].hp -= 1;
+            }
             state.score += 1;
 
             try game_effects.newPotentialEffect();
+
+            if (has_big_ball) continue;
 
             const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
             const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
 
             const brick_cx = (brick_left + brick_right) * 0.5;
             const brick_cy = (brick_top + brick_bottom) * 0.5;
-
-            if (game_effects.hasEffect(EffectType.BigBall)) continue;
 
             if (overlap_x < overlap_y) {
                 state.ball_vel.x = -state.ball_vel.x;

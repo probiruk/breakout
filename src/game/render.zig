@@ -28,13 +28,11 @@ pub fn draw() void {
 
     // Paddle
     const paddle_src = r.Rectangle{ .x = 1574, .y = 912, .width = 115, .height = 64 };
-    const paddle_visual_h: f32 = 14.0;
-    const paddle_visual_y = state.paddle_pos.y - ((paddle_visual_h - Config.paddle_h) * 0.5);
     const paddle_dst = r.Rectangle{
         .x = state.paddle_pos.x,
-        .y = paddle_visual_y,
+        .y = state.paddle_pos.y,
         .width = Config.paddle_w,
-        .height = paddle_visual_h,
+        .height = Config.paddle_h,
     };
     r.drawTexturePro(sheet, paddle_src, paddle_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
 
@@ -57,11 +55,11 @@ pub fn draw() void {
     );
 
     for (state.bricks, 0..) |b, i| {
-        if (!b.alive) continue;
+        if (b.hp == 0) continue;
 
         const row: usize = i / Config.brick_cols;
 
-        const brick = switch (row) {
+        const clean = switch (row) {
             0 => r.Rectangle{ .x = 772, .y = 260, .width = 384, .height = 128 }, // 07 red
             1 => r.Rectangle{ .x = 772, .y = 0, .width = 384, .height = 128 }, // 09 orange
             2 => r.Rectangle{ .x = 386, .y = 390, .width = 384, .height = 128 }, // 13 yellow
@@ -69,6 +67,15 @@ pub fn draw() void {
             4 => r.Rectangle{ .x = 386, .y = 650, .width = 384, .height = 128 }, // 11 cyan
             else => r.Rectangle{ .x = 772, .y = 390, .width = 384, .height = 128 }, // 01 blue
         };
+        const cracked = switch (row) {
+            0 => r.Rectangle{ .x = 772, .y = 130, .width = 384, .height = 128 }, // 08 red cracked
+            1 => r.Rectangle{ .x = 772, .y = 650, .width = 384, .height = 128 }, // 10 orange cracked
+            2 => r.Rectangle{ .x = 386, .y = 260, .width = 384, .height = 128 }, // 14 yellow cracked
+            3 => r.Rectangle{ .x = 386, .y = 0, .width = 384, .height = 128 }, // 16 green cracked
+            4 => r.Rectangle{ .x = 386, .y = 520, .width = 384, .height = 128 }, // 12 cyan cracked
+            else => r.Rectangle{ .x = 0, .y = 0, .width = 384, .height = 128 }, // 02 blue cracked
+        };
+        const brick = if (b.max_hp == 2 and b.hp == 1) cracked else clean;
 
         const dst = r.Rectangle{ .x = b.x, .y = b.y, .width = b.w, .height = b.h };
 

@@ -23,7 +23,8 @@ pub fn initBricks() void {
             const x: f32 = Config.side_margin + col_f * (brick_w + Config.brick_gap); // left edge: start at margin, step right by (brick+gap) per column
             const y: f32 = Config.top_margin + row_f * (Config.brick_h + Config.brick_gap); // top edge: start at top margin, step down by (brick+gap) per row
 
-            state.bricks[i] = .{ .x = x, .y = y, .w = brick_w, .h = Config.brick_h, .alive = true };
+            const max_hp: u8 = if (row <= 1) 2 else 1;
+            state.bricks[i] = .{ .x = x, .y = y, .w = brick_w, .h = Config.brick_h, .hp = max_hp, .max_hp = max_hp };
             i += 1;
         }
     }

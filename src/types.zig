@@ -1,12 +1,6 @@
 pub const Vec2 = struct { x: f32, y: f32 };
 
-pub const Brick = struct {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
-    alive: bool,
-};
+pub const Brick = struct { x: f32, y: f32, w: f32, h: f32, hp: u8, max_hp: u8 };
 
 pub const EffectType = enum { BigBall, FastBall };
 
