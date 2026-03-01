@@ -16,14 +16,14 @@ pub const Config = struct {
     pub const paddle_w: f32 = 70.0;
     pub const paddle_h: f32 = 14.0;
     pub const paddle_speed: f32 = 400.0; // pixels per second
-    pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
+    pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w / 2, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
 
     // Ball
     pub const ball_radius: f32 = 6.5;
     pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
     pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians
     pub const launch_angle: f32 = 30.0 * (std.math.pi / 180.0); // radians
-    pub const ball_start_pos: Vec2 = .{ .x = (screen_w / 2) - (paddle_w / 2) + (ball_radius / 2), .y = (@as(f32, 0.9) * @as(f32, screen_h) - @as(f32, 10)) };
+    pub const ball_start_pos: Vec2 = .{ .x = (screen_w / 2) - (paddle_w / 2), .y = (@as(f32, 0.9) * @as(f32, screen_h) - @as(f32, 10)) };
 
     // Bricks layout
     pub const side_margin: f32 = 30.0;

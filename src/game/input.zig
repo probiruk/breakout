@@ -12,8 +12,6 @@ pub fn updatePaddle(dt: f32) void {
         state.ball_vel.y = -@cos(Config.launch_angle) * Config.ball_max_speed;
     }
 
-    if (state.ball_vel.x == 0 and state.ball_vel.y == 0) return;
-
     var dir: f32 = 0.0;
     if (r.isKeyDown(.right)) dir += 1.0;
     if (r.isKeyDown(.left)) dir -= 1.0;
@@ -23,5 +21,10 @@ pub fn updatePaddle(dt: f32) void {
 
     if (next_x > 0 and next_x < @as(f32, Config.screen_w - Config.paddle_w)) {
         state.paddle_pos.x = next_x;
+    }
+
+    // The ball has not been fired yet, so keep it attached to the paddle and update its position whenever the paddle moves.
+    if (state.ball_vel.x == 0 and state.ball_vel.y == 0) {
+        state.ball_pos.x = (state.paddle_pos.x + (Config.paddle_w / 2));
     }
 }
