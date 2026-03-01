@@ -15,7 +15,7 @@ fn restartGame() void {
     game.bricks.initBricks();
 }
 
-pub fn main() std.mem.Allocator.Error!void {
+pub fn main() !void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
     defer r.closeWindow();
     if (!r.isWindowReady()) {
@@ -24,6 +24,9 @@ pub fn main() std.mem.Allocator.Error!void {
     }
 
     r.setTargetFPS(Config.fps);
+
+    try game.render.initAssets();
+    defer game.render.deinitAssets();
 
     game.bricks.initBricks();
 
