@@ -2,6 +2,7 @@ const std = @import("std");
 const Effect = @import("../types.zig").Effect;
 const EffectType = @import("../types.zig").EffectType;
 const state = @import("./state.zig");
+const audio = @import("./audio.zig");
 
 pub fn hasEffect(etype: EffectType) bool {
     for (state.effects.items) |*eff| {
@@ -31,8 +32,10 @@ pub fn newPotentialEffect() std.mem.Allocator.Error!void {
 
     if (randInt == 2) {
         try addEffect(.{ .type = EffectType.BigBall, .duration = 3.0, .time = 0.0 });
+        audio.playPowerupPickup();
     }
     if (randInt == 3) {
         try addEffect(.{ .type = EffectType.FastBall, .duration = 3.0, .time = 0.0 });
+        audio.playPowerupPickup();
     }
 }

@@ -5,6 +5,7 @@ const Effect = types.Effect;
 const EffectType = types.EffectType;
 const state = @import("./state.zig");
 const game_effects = @import("./effects.zig");
+const audio = @import("./audio.zig");
 
 pub fn resolveBrickCollision(
     ball_size: f32,
@@ -39,6 +40,13 @@ pub fn resolveBrickCollision(
             } else {
                 state.bricks[i].hp -= 1;
             }
+
+            if (state.bricks[i].hp == 0) {
+                audio.playBrickBreak();
+            } else {
+                audio.playBrickHit();
+            }
+
             state.score += 1;
 
             try game_effects.newPotentialEffect();

@@ -24,16 +24,29 @@ pub fn main() !void {
     }
 
     r.setTargetFPS(Config.fps);
+    r.initAudioDevice();
+    defer r.closeAudioDevice();
+
+    try game.audio.init();
+    defer game.audio.deinit();
 
     try game.render.initAssets();
     defer game.render.deinitAssets();
 
     game.bricks.initBricks();
+    var was_game_over = false;
 
     while (!r.windowShouldClose()) {
         const dt: f32 = r.getFrameTime();
-        if (state.lives == 0) {
+        const is_game_over = state.lives == 0;
+
+        if (is_game_over and !was_game_over) {
+            game.audio.playGameOver();
+        }
+
+        if (is_game_over) {
             if (r.isKeyPressed(.r)) {
+                game.audio.playRestart();
                 restartGame();
             }
         } else {
@@ -41,5 +54,6 @@ pub fn main() !void {
             try game.update.step(dt);
         }
         game.render.draw();
+        was_game_over = is_game_over;
     }
 }

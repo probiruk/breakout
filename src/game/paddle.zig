@@ -1,6 +1,7 @@
 const Config = @import("../config.zig").Config;
 const Vec2 = @import("../types.zig").Vec2;
 const state = @import("./state.zig");
+const audio = @import("./audio.zig");
 
 pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec2) void {
     const pw: f32 = @as(f32, Config.paddle_w);
@@ -38,5 +39,6 @@ pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec
         const angle: f32 = hit * Config.max_bounce_angle;
         state.ball_vel.x = @sin(angle) * ball_speed;
         state.ball_vel.y = -@cos(angle) * ball_speed;
+        audio.playPaddleHit();
     }
 }

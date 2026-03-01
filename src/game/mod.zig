@@ -4,6 +4,7 @@ pub const update = @import("update.zig");
 pub const render = @import("render.zig");
 pub const bricks = @import("bricks.zig");
 pub const effects = @import("effects.zig");
+pub const audio = @import("audio.zig");
 pub const paddle = @import("paddle.zig");
 pub const ball = @import("ball.zig");
 pub const collision = @import("collision.zig");

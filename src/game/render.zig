@@ -7,7 +7,7 @@ const state = @import("./state.zig");
 var brick_sheet: ?r.Texture2D = null;
 
 pub fn initAssets() !void {
-    brick_sheet = try r.loadTexture("assets/breakout/sprites/sheets/breakout_tile_free.png");
+    brick_sheet = try r.loadTexture("assets/sprites/atlas/breakout_tile_free.png");
 }
 
 pub fn deinitAssets() void {
