@@ -1,8 +1,19 @@
 const std = @import("std");
 const r = @import("raylib");
 const Config = @import("./config.zig").Config;
-const Effect = @import("./types.zig").Effect;
 const game = @import("./game/mod.zig");
+const state = @import("./game/state.zig");
+
+fn restartGame() void {
+    state.score = 0;
+    state.lives = 3;
+    state.paddle_pos = Config.paddle_start_pos;
+    state.ball_pos = Config.ball_start_pos;
+    state.ball_vel = .{ .x = 0, .y = 0 };
+    state.ball_size = Config.ball_radius;
+    state.effects.clearRetainingCapacity();
+    game.bricks.initBricks();
+}
 
 pub fn main() std.mem.Allocator.Error!void {
     r.initWindow(Config.screen_w, Config.screen_h, "Breakout");
@@ -16,12 +27,16 @@ pub fn main() std.mem.Allocator.Error!void {
 
     game.bricks.initBricks();
 
-    var effects: std.ArrayList(Effect) = .{};
-
     while (!r.windowShouldClose()) {
         const dt: f32 = r.getFrameTime();
-        game.input.updatePaddle(dt);
-        const ball_size = try game.update.step(dt, &effects);
-        game.render.draw(ball_size);
+        if (state.lives == 0) {
+            if (r.isKeyPressed(.r)) {
+                restartGame();
+            }
+        } else {
+            game.input.updatePaddle(dt);
+            try game.update.step(dt);
+        }
+        game.render.draw();
     }
 }

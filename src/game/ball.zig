@@ -29,4 +29,18 @@ pub fn resolveWallBounce(ball_size: f32, next_ball_pos: *Vec2) void {
         next_ball_pos.x = sw - ball_size;
         state.ball_vel.x = -state.ball_vel.x;
     }
+
+    // ball live lost logic
+    if (ball_top >= Config.screen_h and state.lives > 0) {
+        state.lives -= 1;
+
+        state.ball_vel.x = 0;
+        state.ball_vel.y = 0;
+
+        state.ball_pos = Config.ball_start_pos;
+        next_ball_pos.* = Config.ball_start_pos;
+        state.paddle_pos = Config.paddle_start_pos;
+
+        state.effects = .{};
+    }
 }

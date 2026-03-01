@@ -9,7 +9,6 @@ const game_effects = @import("./effects.zig");
 pub fn resolveBrickCollision(
     ball_size: f32,
     next_ball_pos: *Vec2,
-    effects: *std.ArrayList(Effect),
 ) std.mem.Allocator.Error!void {
     const ball_top: f32 = next_ball_pos.y - ball_size;
     const ball_bottom: f32 = next_ball_pos.y + ball_size;
@@ -36,7 +35,7 @@ pub fn resolveBrickCollision(
             state.bricks[i].alive = false;
             state.score += 1;
 
-            try game_effects.newPotentialEffect(effects);
+            try game_effects.newPotentialEffect();
 
             const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
             const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
@@ -44,7 +43,7 @@ pub fn resolveBrickCollision(
             const brick_cx = (brick_left + brick_right) * 0.5;
             const brick_cy = (brick_top + brick_bottom) * 0.5;
 
-            if (game_effects.hasEffect(effects, EffectType.BigBall)) continue;
+            if (game_effects.hasEffect(EffectType.BigBall)) continue;
 
             if (overlap_x < overlap_y) {
                 state.ball_vel.x = -state.ball_vel.x;
