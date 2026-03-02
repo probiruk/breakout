@@ -1,5 +1,6 @@
 const Config = @import("../config.zig").Config;
 const state = @import("./state.zig");
+const EffectType = @import("../types.zig").EffectType;
 
 pub fn initBricks() void {
     const sw: f32 = @as(f32, Config.screen_w);
@@ -24,7 +25,7 @@ pub fn initBricks() void {
             const y: f32 = Config.top_margin + row_f * (Config.brick_h + Config.brick_gap); // top edge: start at top margin, step down by (brick+gap) per row
 
             const max_hp: u8 = if (row <= 1) 2 else 1;
-            state.bricks[i] = .{ .x = x, .y = y, .w = brick_w, .h = Config.brick_h, .hp = max_hp, .max_hp = max_hp };
+            state.bricks[i] = .{ .x = x, .y = y, .w = brick_w, .h = Config.brick_h, .hp = max_hp, .max_hp = max_hp, .effect = .{ .type = EffectType.ExpandPaddle, .duration = 5.0 } };
             i += 1;
         }
     }

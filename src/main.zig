@@ -8,10 +8,12 @@ fn restartGame() void {
     state.score = 0;
     state.lives = 3;
     state.paddle_pos = Config.paddle_start_pos;
+    state.paddle_width = Config.paddle_w;
     state.ball_pos = Config.ball_start_pos;
     state.ball_vel = .{ .x = 0, .y = 0 };
     state.ball_size = Config.ball_radius;
     state.effects.clearRetainingCapacity();
+    state.pickups.clearRetainingCapacity();
     game.bricks.initBricks();
 }
 

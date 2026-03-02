@@ -45,7 +45,9 @@ pub fn resolveWallBounce(ball_size: f32, next_ball_pos: *Vec2) void {
         state.ball_pos = Config.ball_start_pos;
         next_ball_pos.* = Config.ball_start_pos;
         state.paddle_pos = Config.paddle_start_pos;
+        state.paddle_width = Config.paddle_w;
 
-        state.effects = .{};
+        state.effects.clearRetainingCapacity();
+        state.pickups.clearRetainingCapacity();
     }
 }

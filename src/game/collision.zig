@@ -1,10 +1,10 @@
 const std = @import("std");
 const types = @import("../types.zig");
 const Vec2 = types.Vec2;
-const Effect = types.Effect;
 const EffectType = types.EffectType;
 const state = @import("./state.zig");
 const game_effects = @import("./effects.zig");
+const pickups = @import("./pickups.zig");
 const audio = @import("./audio.zig");
 
 pub fn resolveBrickCollision(
@@ -48,8 +48,9 @@ pub fn resolveBrickCollision(
             }
 
             state.score += 1;
-
-            try game_effects.newPotentialEffect();
+            if (state.bricks[i].hp == 0) {
+                try pickups.spawnFromBrick(brick);
+            }
 
             if (has_big_ball) continue;
 

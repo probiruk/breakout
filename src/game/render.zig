@@ -27,14 +27,40 @@ pub fn draw() void {
     const sheet = brick_sheet orelse return;
 
     // Paddle
-    const paddle_src = r.Rectangle{ .x = 1574, .y = 912, .width = 115, .height = 64 };
+    const paddle_anim_frames = [_]r.Rectangle{
+        .{ .x = 1158, .y = 462, .width = 243, .height = 64 }, // 50
+        .{ .x = 1158, .y = 528, .width = 243, .height = 64 }, // 51
+        .{ .x = 1158, .y = 594, .width = 243, .height = 64 }, // 52
+    };
+    const paddle_expand_src = r.Rectangle{ .x = 0, .y = 910, .width = 347, .height = 64 }; // 56
+    const pickup_expand_src = r.Rectangle{ .x = 1158, .y = 264, .width = 243, .height = 64 }; // 47
+    const normal_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 18.0)));
+    const expanded_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 12.0)));
+    const normal_anim_idx = normal_anim_t % paddle_anim_frames.len;
+    const expanded_anim_idx = expanded_anim_t % paddle_anim_frames.len;
+    const paddle_normal_src = paddle_anim_frames[normal_anim_idx];
+    const paddle_expand_overlay_src = paddle_anim_frames[expanded_anim_idx];
+    const is_expanded = state.paddle_width > Config.paddle_w;
     const paddle_dst = r.Rectangle{
         .x = state.paddle_pos.x,
         .y = state.paddle_pos.y,
-        .width = Config.paddle_w,
+        .width = state.paddle_width,
         .height = Config.paddle_h,
     };
-    r.drawTexturePro(sheet, paddle_src, paddle_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
+    if (is_expanded) {
+        r.drawTexturePro(sheet, paddle_expand_src, paddle_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
+        // Add clearly visible animated zigzag motion on top of the expanded base.
+        r.drawTexturePro(
+            sheet,
+            paddle_expand_overlay_src,
+            paddle_dst,
+            .{ .x = 0, .y = 0 },
+            0.0,
+            .{ .r = 255, .g = 255, .b = 255, .a = 190 },
+        );
+    } else {
+        r.drawTexturePro(sheet, paddle_normal_src, paddle_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
+    }
 
     // Ball
     const ball_src = r.Rectangle{ .x = 1403, .y = 652, .width = 64, .height = 64 };
@@ -83,6 +109,28 @@ pub fn draw() void {
             sheet,
             brick,
             dst,
+            .{ .x = 0, .y = 0 },
+            0.0,
+            .white,
+        );
+    }
+
+    // pickups
+    for (state.pickups.items) |pickup| {
+        const pickup_src = switch (pickup.effect.type) {
+            .ExpandPaddle => pickup_expand_src,
+            else => paddle_anim_frames[0],
+        };
+        const pickup_dst = r.Rectangle{
+            .x = pickup.x,
+            .y = pickup.y,
+            .width = pickup.w,
+            .height = pickup.h,
+        };
+        r.drawTexturePro(
+            sheet,
+            pickup_src,
+            pickup_dst,
             .{ .x = 0, .y = 0 },
             0.0,
             .white,

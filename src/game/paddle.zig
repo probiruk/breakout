@@ -4,7 +4,7 @@ const state = @import("./state.zig");
 const audio = @import("./audio.zig");
 
 pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec2) void {
-    const pw: f32 = @as(f32, Config.paddle_w);
+    const pw: f32 = state.paddle_width;
     const ph: f32 = @as(f32, Config.paddle_h);
 
     const paddle_top: f32 = state.paddle_pos.y;
