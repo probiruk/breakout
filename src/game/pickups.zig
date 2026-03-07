@@ -8,23 +8,20 @@ const state = @import("./state.zig");
 const effects = @import("./effects.zig");
 const audio = @import("./audio.zig");
 
-const pickup_fall_speed: f32 = 120.0;
-const pickup_w: f32 = 54.0;
-const pickup_h: f32 = 14.0;
-
-const none_weight: u16 = 88; // default to no-drop most of the time
 const effect_drop_table = [_]struct {
     etype: EffectType,
     duration: f32,
     weight: u16,
 }{
-    .{ .etype = .ExpandPaddle, .duration = 5.0, .weight = 5 },
-    .{ .etype = .SlowBall, .duration = 5.0, .weight = 3 },
-    .{ .etype = .FastBall, .duration = 5.0, .weight = 2 },
-    .{ .etype = .MultiBall, .duration = 0.0, .weight = 10 },
+    .{ .etype = .FirePaddle, .duration = Config.pickup_effect_durations.fire_paddle, .weight = Config.pickup_drop_weights.fire_paddle },
+    .{ .etype = .ExpandPaddle, .duration = Config.pickup_effect_durations.expand_paddle, .weight = Config.pickup_drop_weights.expand_paddle },
+    .{ .etype = .SlowBall, .duration = Config.pickup_effect_durations.slow_ball, .weight = Config.pickup_drop_weights.slow_ball },
+    .{ .etype = .FastBall, .duration = Config.pickup_effect_durations.fast_ball, .weight = Config.pickup_drop_weights.fast_ball },
+    .{ .etype = .MultiBall, .duration = Config.pickup_effect_durations.multi_ball, .weight = Config.pickup_drop_weights.multi_ball },
 };
 
 fn chooseDropEffect(effect_mask: u8) ?Effect {
+    const none_weight = Config.pickup_drop_weights.none;
     var total_weight: u16 = none_weight;
     for (effect_drop_table) |entry| {
         if ((effect_mask & effects.effectBit(entry.etype)) == 0) continue;
@@ -51,11 +48,11 @@ fn chooseDropEffect(effect_mask: u8) ?Effect {
 pub fn spawnFromBrick(brick: Brick) std.mem.Allocator.Error!void {
     const effect = chooseDropEffect(brick.effect_mask) orelse return;
     const pickup = Pickup{
-        .x = brick.x + (brick.w - pickup_w) * 0.5,
-        .y = brick.y + (brick.h - pickup_h) * 0.5,
-        .w = pickup_w,
-        .h = pickup_h,
-        .vy = pickup_fall_speed,
+        .x = brick.x + (brick.w - Config.pickup.w) * 0.5,
+        .y = brick.y + (brick.h - Config.pickup.h) * 0.5,
+        .w = Config.pickup.w,
+        .h = Config.pickup.h,
+        .vy = Config.pickup.fall_speed,
         .effect = effect,
     };
     try state.pickups.append(std.heap.page_allocator, pickup);

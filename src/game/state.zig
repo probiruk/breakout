@@ -4,6 +4,7 @@ const Ball = @import("../types.zig").Ball;
 const Brick = @import("../types.zig").Brick;
 const Config = @import("../config.zig").Config;
 const Effect = @import("../types.zig").Effect;
+const FireShot = @import("../types.zig").FireShot;
 const Pickup = @import("../types.zig").Pickup;
 
 pub var paddle_pos: Vec2 = Config.paddle_start_pos;
@@ -24,6 +25,9 @@ pub var paddle_width: f32 = Config.paddle_w;
 
 pub var effects: std.ArrayList(Effect) = .{};
 pub var pickups: std.ArrayList(Pickup) = .{};
+pub var fire_shots: std.ArrayList(FireShot) = .{};
+pub var fire_shot_cooldown: f32 = 0.0;
+pub var fire_mode_was_active: bool = false;
 
 pub var score: u32 = 0;
 

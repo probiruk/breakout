@@ -4,6 +4,7 @@ const Config = @import("../config.zig").Config;
 const Theme = @import("../config.zig").Theme;
 const BrickType = @import("../types.zig").BrickType;
 const bricks = @import("./bricks.zig");
+const effects = @import("./effects.zig");
 const state = @import("./state.zig");
 
 var brick_sheet: ?r.Texture2D = null;
@@ -29,22 +30,31 @@ pub fn draw() void {
     const sheet = brick_sheet orelse return;
 
     // Paddle
-    const paddle_anim_frames = [_]r.Rectangle{
+    const paddle_normal_anim_frames = [_]r.Rectangle{
         .{ .x = 1158, .y = 462, .width = 243, .height = 64 }, // 50
         .{ .x = 1158, .y = 528, .width = 243, .height = 64 }, // 51
         .{ .x = 1158, .y = 594, .width = 243, .height = 64 }, // 52
+    };
+    const paddle_fire_anim_frames = [_]r.Rectangle{
+        .{ .x = 1158, .y = 660, .width = 243, .height = 64 }, // 53
+        .{ .x = 839, .y = 846, .width = 243, .height = 64 }, // 54
+        .{ .x = 772, .y = 780, .width = 243, .height = 64 }, // 55
     };
     const pickup_multiball_src = r.Rectangle{ .x = 594, .y = 910, .width = 243, .height = 64 }; // 43
     const pickup_fast_src = r.Rectangle{ .x = 349, .y = 910, .width = 243, .height = 64 }; // 42
     const paddle_expand_src = r.Rectangle{ .x = 0, .y = 910, .width = 347, .height = 64 }; // 56
     const pickup_slow_src = r.Rectangle{ .x = 1158, .y = 66, .width = 243, .height = 64 }; // 41
     const pickup_expand_src = r.Rectangle{ .x = 1158, .y = 264, .width = 243, .height = 64 }; // 47
+    const pickup_fire_src = r.Rectangle{ .x = 1158, .y = 330, .width = 243, .height = 64 }; // 48
+    const fire_shot_src = r.Rectangle{ .x = 0, .y = 990, .width = 10, .height = 21 }; // 61
     const normal_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 18.0)));
     const expanded_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 12.0)));
-    const normal_anim_idx = normal_anim_t % paddle_anim_frames.len;
-    const expanded_anim_idx = expanded_anim_t % paddle_anim_frames.len;
-    const paddle_normal_src = paddle_anim_frames[normal_anim_idx];
-    const paddle_expand_overlay_src = paddle_anim_frames[expanded_anim_idx];
+    const is_fire_paddle = effects.hasEffect(.FirePaddle);
+    const active_paddle_anim_frames = if (is_fire_paddle) paddle_fire_anim_frames else paddle_normal_anim_frames;
+    const normal_anim_idx = normal_anim_t % active_paddle_anim_frames.len;
+    const expanded_anim_idx = expanded_anim_t % active_paddle_anim_frames.len;
+    const paddle_normal_src = active_paddle_anim_frames[normal_anim_idx];
+    const paddle_expand_overlay_src = active_paddle_anim_frames[expanded_anim_idx];
     const is_expanded = state.paddle_width > Config.paddle_w;
     const paddle_dst = r.Rectangle{
         .x = state.paddle_pos.x,
@@ -172,6 +182,7 @@ pub fn draw() void {
             .FastBall => pickup_fast_src,
             .SlowBall => pickup_slow_src,
             .ExpandPaddle => pickup_expand_src,
+            .FirePaddle => pickup_fire_src,
         };
         const pickup_dst = r.Rectangle{
             .x = pickup.x,
@@ -187,6 +198,16 @@ pub fn draw() void {
             0.0,
             .white,
         );
+    }
+
+    for (state.fire_shots.items) |shot| {
+        const shot_dst = r.Rectangle{
+            .x = shot.x,
+            .y = shot.y,
+            .width = shot.w,
+            .height = shot.h,
+        };
+        r.drawTexturePro(sheet, fire_shot_src, shot_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
     }
 
     // score

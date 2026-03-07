@@ -18,8 +18,49 @@ pub const Config = struct {
     pub const paddle_speed: f32 = 400.0; // pixels per second
     pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w / 2, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
 
+    // Fire mode
+    pub const fire_mode = struct {
+        // Projectile shape
+        pub const shot_w: f32 = 6.0;
+        pub const shot_h: f32 = 14.0;
+        pub const shot_spawn_inset: f32 = 2.0; // smaller inset -> shots spawn closer to paddle edges
+
+        // Projectile speed (negative means up)
+        pub const shot_speed_y: f32 = -220.0;
+
+        // Firing cadence
+        pub const shot_interval: f32 = 0.32;
+    };
+
+    // Pickup drop chances (relative weights)
+    pub const pickup_drop_weights = struct {
+        pub const none: u16 = 88; // default to no-drop most of the time
+        pub const fire_paddle: u16 = 20;
+        pub const expand_paddle: u16 = 5;
+        pub const slow_ball: u16 = 3;
+        pub const fast_ball: u16 = 2;
+        pub const multi_ball: u16 = 10;
+    };
+
+    // Pickup effect durations in seconds
+    pub const pickup_effect_durations = struct {
+        pub const fire_paddle: f32 = 6.0;
+        pub const expand_paddle: f32 = 5.0;
+        pub const slow_ball: f32 = 5.0;
+        pub const fast_ball: f32 = 5.0;
+        pub const multi_ball: f32 = 0.0;
+    };
+
+    // Pickup movement and size
+    pub const pickup = struct {
+        pub const fall_speed: f32 = 120.0;
+        pub const w: f32 = 54.0;
+        pub const h: f32 = 14.0;
+    };
+
     // Ball
     pub const ball_radius: f32 = 6.0;
+    pub const ball_min_speed: f32 = 140.0; // lower clamp after speed-modifying effects
     pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
     pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians
     pub const launch_angle: f32 = 30.0 * (std.math.pi / 180.0); // radians

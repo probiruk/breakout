@@ -12,7 +12,8 @@ pub fn effectBit(etype: EffectType) u8 {
 pub const all_effect_mask: u8 = effectBit(.MultiBall) |
     effectBit(.FastBall) |
     effectBit(.SlowBall) |
-    effectBit(.ExpandPaddle);
+    effectBit(.ExpandPaddle) |
+    effectBit(.FirePaddle);
 
 pub fn hasEffect(etype: EffectType) bool {
     for (state.effects.items) |*eff| {

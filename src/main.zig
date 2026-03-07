@@ -15,6 +15,9 @@ fn restartGame() void {
     state.extra_balls.clearRetainingCapacity();
     state.effects.clearRetainingCapacity();
     state.pickups.clearRetainingCapacity();
+    state.fire_shots.clearRetainingCapacity();
+    state.fire_shot_cooldown = 0.0;
+    state.fire_mode_was_active = false;
     game.bricks.initBricks();
 }
 

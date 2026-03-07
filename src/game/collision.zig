@@ -3,6 +3,7 @@ const Config = @import("../config.zig").Config;
 const types = @import("../types.zig");
 const Vec2 = types.Vec2;
 const BrickType = types.BrickType;
+const FireShot = types.FireShot;
 const state = @import("./state.zig");
 const bricks = @import("./bricks.zig");
 const pickups = @import("./pickups.zig");
@@ -106,4 +107,84 @@ pub fn resolveBrickCollision(
             break;
         }
     }
+}
+
+pub fn resolveFireShotCollision(shot: *FireShot) std.mem.Allocator.Error!bool {
+    const shot_top: f32 = shot.y;
+    const shot_bottom: f32 = shot.y + shot.h;
+    const shot_left: f32 = shot.x;
+    const shot_right: f32 = shot.x + shot.w;
+
+    for (state.bricks, 0..) |brick, i| {
+        if (brick.hp == 0) continue;
+        const col: usize = i % Config.brick_cols;
+        var brick_top: f32 = brick.y;
+        var brick_bottom: f32 = brick.y + brick.h;
+        var brick_left: f32 = brick.x;
+        var brick_right: f32 = brick.x + brick.w;
+        if (brick.type == BrickType.Mini) {
+            const mini_layout = bricks.getMiniRowLayout(brick);
+            const base_idx = col * mini_layout.count_per_brick;
+            const left_idx_f: f32 = @floatFromInt(base_idx);
+            const right_idx_f: f32 = @floatFromInt(base_idx + mini_layout.count_per_brick - 1);
+            brick_left = mini_layout.start_x + left_idx_f * (mini_layout.side + mini_layout.gap);
+            brick_right = mini_layout.start_x + right_idx_f * (mini_layout.side + mini_layout.gap) + mini_layout.side;
+            brick_top = mini_layout.start_y;
+            brick_bottom = mini_layout.start_y + mini_layout.side;
+        }
+
+        const overlaps = shot_bottom >= brick_top and
+            shot_top <= brick_bottom and
+            shot_right >= brick_left and
+            shot_left <= brick_right;
+
+        if (!overlaps) continue;
+
+        if (brick.type == BrickType.Mini) {
+            const mini_layout = bricks.getMiniRowLayout(brick);
+            const base_idx = col * mini_layout.count_per_brick;
+            var hit_mini = false;
+            var j: usize = 0;
+            while (j < mini_layout.count_per_brick) : (j += 1) {
+                const bit_shift: u3 = @intCast(j);
+                const bit = @as(u8, 1) << bit_shift;
+                if ((state.bricks[i].mini_mask & bit) == 0) continue;
+
+                const global_idx = base_idx + j;
+                const idx_f: f32 = @floatFromInt(global_idx);
+                const mini_left = mini_layout.start_x + idx_f * (mini_layout.side + mini_layout.gap);
+                const mini_right = mini_left + mini_layout.side;
+                const mini_top = mini_layout.start_y;
+                const mini_bottom = mini_top + mini_layout.side;
+                const overlaps_mini = shot_bottom >= mini_top and
+                    shot_top <= mini_bottom and
+                    shot_right >= mini_left and
+                    shot_left <= mini_right;
+                if (!overlaps_mini) continue;
+
+                state.bricks[i].mini_mask &= ~bit;
+                state.bricks[i].hp -= 1;
+                hit_mini = true;
+                break;
+            }
+
+            if (!hit_mini) continue;
+        } else {
+            state.bricks[i].hp -= 1;
+        }
+
+        if (state.bricks[i].hp == 0) {
+            audio.playBrickBreak();
+        } else {
+            audio.playBrickHit();
+        }
+
+        state.score += 1;
+        if (state.bricks[i].hp == 0) {
+            try pickups.spawnFromBrick(brick);
+        }
+        return true;
+    }
+
+    return false;
 }
