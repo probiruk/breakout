@@ -3,7 +3,7 @@ const Vec2 = @import("../types.zig").Vec2;
 const state = @import("./state.zig");
 const audio = @import("./audio.zig");
 
-pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec2) void {
+pub fn resolveBallCollision(ball_vel: *Vec2, ball_size: f32, ball_speed: f32, next_ball_pos: *Vec2) void {
     const pw: f32 = state.paddle_width;
     const ph: f32 = @as(f32, Config.paddle_h);
 
@@ -18,7 +18,7 @@ pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec
     const ball_left: f32 = next_ball_pos.x - ball_size;
     const ball_right: f32 = next_ball_pos.x + ball_size;
 
-    const ball_moving_down = state.ball_vel.y > 0;
+    const ball_moving_down = ball_vel.y > 0;
     const ball_below_paddle_top = ball_bottom >= paddle_top;
     const ball_right_of_paddle_left = ball_right >= paddle_left;
     const ball_left_of_paddle_right = ball_left <= paddle_right;
@@ -37,8 +37,8 @@ pub fn resolveBallCollision(ball_size: f32, ball_speed: f32, next_ball_pos: *Vec
         if (hit > 1) hit = 1;
 
         const angle: f32 = hit * Config.max_bounce_angle;
-        state.ball_vel.x = @sin(angle) * ball_speed;
-        state.ball_vel.y = -@cos(angle) * ball_speed;
+        ball_vel.x = @sin(angle) * ball_speed;
+        ball_vel.y = -@cos(angle) * ball_speed;
         audio.playPaddleHit();
     }
 }

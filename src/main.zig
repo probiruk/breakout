@@ -12,6 +12,7 @@ fn restartGame() void {
     state.ball_pos = Config.ball_start_pos;
     state.ball_vel = .{ .x = 0, .y = 0 };
     state.ball_size = Config.ball_radius;
+    state.extra_balls.clearRetainingCapacity();
     state.effects.clearRetainingCapacity();
     state.pickups.clearRetainingCapacity();
     game.bricks.initBricks();

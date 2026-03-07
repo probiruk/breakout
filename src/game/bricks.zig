@@ -1,8 +1,8 @@
 const Config = @import("../config.zig").Config;
 const state = @import("./state.zig");
-const EffectType = @import("../types.zig").EffectType;
 const Brick = @import("../types.zig").Brick;
 const BrickType = @import("../types.zig").BrickType;
+const effects = @import("./effects.zig");
 
 /// Build an all-alive mini bitmask for count tiles.
 fn fullMiniMask(count: u8) u8 {
@@ -80,7 +80,7 @@ pub fn initBricks() void {
                 .max_hp = max_hp,
                 .mini_count = mini_count,
                 .mini_mask = mini_mask,
-                .effect = .{ .type = EffectType.ExpandPaddle, .duration = 5.0 },
+                .effect_mask = effects.all_effect_mask,
             };
             i += 1;
         }

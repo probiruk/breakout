@@ -2,15 +2,14 @@ const std = @import("std");
 const Config = @import("../config.zig").Config;
 const types = @import("../types.zig");
 const Vec2 = types.Vec2;
-const EffectType = types.EffectType;
 const BrickType = types.BrickType;
 const state = @import("./state.zig");
-const game_effects = @import("./effects.zig");
 const bricks = @import("./bricks.zig");
 const pickups = @import("./pickups.zig");
 const audio = @import("./audio.zig");
 
 pub fn resolveBrickCollision(
+    ball_vel: *Vec2,
     ball_size: f32,
     next_ball_pos: *Vec2,
 ) std.mem.Allocator.Error!void {
@@ -47,9 +46,7 @@ pub fn resolveBrickCollision(
             ball_right_past_brick_left and
             ball_left_before_brick_right)
         {
-            const has_big_ball = game_effects.hasEffect(EffectType.BigBall);
-
-            if (brick.type == BrickType.Mini and !has_big_ball) {
+            if (brick.type == BrickType.Mini) {
                 const mini_layout = bricks.getMiniRowLayout(brick);
                 const base_idx = col * mini_layout.count_per_brick;
                 var hit_mini = false;
@@ -78,9 +75,6 @@ pub fn resolveBrickCollision(
                 }
 
                 if (!hit_mini) continue;
-            } else if (has_big_ball) {
-                state.bricks[i].hp = 0;
-                state.bricks[i].mini_mask = 0;
             } else {
                 state.bricks[i].hp -= 1;
             }
@@ -96,8 +90,6 @@ pub fn resolveBrickCollision(
                 try pickups.spawnFromBrick(brick);
             }
 
-            if (has_big_ball) continue;
-
             const overlap_x = @min(ball_right - brick_left, brick_right - ball_left);
             const overlap_y = @min(ball_bottom - brick_top, brick_bottom - ball_top);
 
@@ -105,10 +97,10 @@ pub fn resolveBrickCollision(
             const brick_cy = (brick_top + brick_bottom) * 0.5;
 
             if (overlap_x < overlap_y) {
-                state.ball_vel.x = -state.ball_vel.x;
+                ball_vel.x = -ball_vel.x;
                 next_ball_pos.x += if (next_ball_pos.x < brick_cx) -overlap_x else overlap_x;
             } else {
-                state.ball_vel.y = -state.ball_vel.y;
+                ball_vel.y = -ball_vel.y;
                 next_ball_pos.y += if (next_ball_pos.y < brick_cy) -overlap_y else overlap_y;
             }
             break;

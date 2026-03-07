@@ -1,23 +1,55 @@
 const std = @import("std");
 const Config = @import("../config.zig").Config;
 const Brick = @import("../types.zig").Brick;
+const Effect = @import("../types.zig").Effect;
+const EffectType = @import("../types.zig").EffectType;
 const Pickup = @import("../types.zig").Pickup;
 const state = @import("./state.zig");
 const effects = @import("./effects.zig");
 const audio = @import("./audio.zig");
 
-const drop_chance_percent: u8 = 20;
 const pickup_fall_speed: f32 = 120.0;
 const pickup_w: f32 = 54.0;
 const pickup_h: f32 = 14.0;
 
+const none_weight: u16 = 88; // default to no-drop most of the time
+const effect_drop_table = [_]struct {
+    etype: EffectType,
+    duration: f32,
+    weight: u16,
+}{
+    .{ .etype = .ExpandPaddle, .duration = 5.0, .weight = 5 },
+    .{ .etype = .SlowBall, .duration = 5.0, .weight = 3 },
+    .{ .etype = .FastBall, .duration = 5.0, .weight = 2 },
+    .{ .etype = .MultiBall, .duration = 0.0, .weight = 10 },
+};
+
+fn chooseDropEffect(effect_mask: u8) ?Effect {
+    var total_weight: u16 = none_weight;
+    for (effect_drop_table) |entry| {
+        if ((effect_mask & effects.effectBit(entry.etype)) == 0) continue;
+        total_weight += entry.weight;
+    }
+
+    if (total_weight == none_weight) return null;
+
+    const roll = std.crypto.random.uintLessThan(u16, total_weight);
+    if (roll < none_weight) return null;
+
+    var running: u16 = none_weight;
+    for (effect_drop_table) |entry| {
+        if ((effect_mask & effects.effectBit(entry.etype)) == 0) continue;
+        running += entry.weight;
+        if (roll < running) {
+            return .{ .type = entry.etype, .duration = entry.duration };
+        }
+    }
+
+    return null;
+}
+
 pub fn spawnFromBrick(brick: Brick) std.mem.Allocator.Error!void {
-    if (brick.effect == null) return;
-
-    const roll = std.crypto.random.uintLessThan(u8, 100);
-    if (roll >= drop_chance_percent) return;
-
-    const effect = brick.effect.?;
+    const effect = chooseDropEffect(brick.effect_mask) orelse return;
     const pickup = Pickup{
         .x = brick.x + (brick.w - pickup_w) * 0.5,
         .y = brick.y + (brick.h - pickup_h) * 0.5,

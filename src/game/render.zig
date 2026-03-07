@@ -34,7 +34,10 @@ pub fn draw() void {
         .{ .x = 1158, .y = 528, .width = 243, .height = 64 }, // 51
         .{ .x = 1158, .y = 594, .width = 243, .height = 64 }, // 52
     };
+    const pickup_multiball_src = r.Rectangle{ .x = 594, .y = 910, .width = 243, .height = 64 }; // 43
+    const pickup_fast_src = r.Rectangle{ .x = 349, .y = 910, .width = 243, .height = 64 }; // 42
     const paddle_expand_src = r.Rectangle{ .x = 0, .y = 910, .width = 347, .height = 64 }; // 56
+    const pickup_slow_src = r.Rectangle{ .x = 1158, .y = 66, .width = 243, .height = 64 }; // 41
     const pickup_expand_src = r.Rectangle{ .x = 1158, .y = 264, .width = 243, .height = 64 }; // 47
     const normal_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 18.0)));
     const expanded_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * 12.0)));
@@ -81,6 +84,22 @@ pub fn draw() void {
         0.0,
         .white,
     );
+    for (state.extra_balls.items) |eb| {
+        const extra_dst = r.Rectangle{
+            .x = eb.pos.x,
+            .y = eb.pos.y,
+            .width = ball_d,
+            .height = ball_d,
+        };
+        r.drawTexturePro(
+            sheet,
+            ball_src,
+            extra_dst,
+            .{ .x = ball_d * 0.5, .y = ball_d * 0.5 },
+            0.0,
+            .white,
+        );
+    }
 
     // Bricks
     for (state.bricks, 0..) |b, i| {
@@ -149,8 +168,10 @@ pub fn draw() void {
     // pickups
     for (state.pickups.items) |pickup| {
         const pickup_src = switch (pickup.effect.type) {
+            .MultiBall => pickup_multiball_src,
+            .FastBall => pickup_fast_src,
+            .SlowBall => pickup_slow_src,
             .ExpandPaddle => pickup_expand_src,
-            else => paddle_anim_frames[0],
         };
         const pickup_dst = r.Rectangle{
             .x = pickup.x,

@@ -2,8 +2,17 @@ const std = @import("std");
 const Effect = @import("../types.zig").Effect;
 const EffectType = @import("../types.zig").EffectType;
 const state = @import("./state.zig");
-const audio = @import("./audio.zig");
-const Brick = @import("../types.zig").Brick;
+const ball = @import("./ball.zig");
+
+pub fn effectBit(etype: EffectType) u8 {
+    const shift: u3 = @intCast(@intFromEnum(etype));
+    return @as(u8, 1) << shift;
+}
+
+pub const all_effect_mask: u8 = effectBit(.MultiBall) |
+    effectBit(.FastBall) |
+    effectBit(.SlowBall) |
+    effectBit(.ExpandPaddle);
 
 pub fn hasEffect(etype: EffectType) bool {
     for (state.effects.items) |*eff| {
@@ -16,6 +25,11 @@ pub fn hasEffect(etype: EffectType) bool {
 }
 
 pub fn addEffect(effect: Effect) std.mem.Allocator.Error!void {
+    if (effect.type == .MultiBall) {
+        try ball.spawnExtraBalls(2);
+        return;
+    }
+
     const alloc = std.heap.page_allocator;
 
     for (state.effects.items) |*eff| {
@@ -29,21 +43,4 @@ pub fn addEffect(effect: Effect) std.mem.Allocator.Error!void {
     }
 
     try state.effects.append(alloc, effect);
-}
-
-pub fn newPotentialEffect(brick: Brick) std.mem.Allocator.Error!void {
-    std.debug.print("{}", .{brick});
-    // const randInt = std.crypto.random.uintLessThan(u8, 7);
-
-    // if (randInt == 2) {
-    //     try addEffect(.{ .type = EffectType.BigBall, .duration = 3.0, .time = 0.0 });
-    //     audio.playPowerupPickup();
-    // }
-    // if (randInt == 3) {
-    //     try addEffect(.{ .type = EffectType.FastBall, .duration = 3.0, .time = 0.0 });
-    //     audio.playPowerupPickup();
-    // }
-    if (brick.effect) |effect| {
-        try addEffect(effect);
-    }
 }
