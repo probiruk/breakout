@@ -19,7 +19,7 @@ pub fn resolveBrickCollision(
     const ball_left: f32 = next_ball_pos.x - ball_size;
     const ball_right: f32 = next_ball_pos.x + ball_size;
 
-    for (state.bricks, 0..) |brick, i| {
+    for (state.bricks.items, 0..) |brick, i| {
         if (brick.hp == 0) continue;
         const col: usize = i % Config.brick_cols;
         var brick_top: f32 = brick.y;
@@ -55,7 +55,7 @@ pub fn resolveBrickCollision(
                 while (j < mini_layout.count_per_brick) : (j += 1) {
                     const bit_shift: u3 = @intCast(j);
                     const bit = @as(u8, 1) << bit_shift;
-                    if ((state.bricks[i].mini_mask & bit) == 0) continue;
+                    if ((state.bricks.items[i].mini_mask & bit) == 0) continue;
 
                     const global_idx = base_idx + j;
                     const idx_f: f32 = @floatFromInt(global_idx);
@@ -69,25 +69,25 @@ pub fn resolveBrickCollision(
                         ball_left <= mini_right;
                     if (!overlaps_mini) continue;
 
-                    state.bricks[i].mini_mask &= ~bit;
-                    state.bricks[i].hp -= 1;
+                    state.bricks.items[i].mini_mask &= ~bit;
+                    state.bricks.items[i].hp -= 1;
                     hit_mini = true;
                     break;
                 }
 
                 if (!hit_mini) continue;
             } else {
-                state.bricks[i].hp -= 1;
+                state.bricks.items[i].hp -= 1;
             }
 
-            if (state.bricks[i].hp == 0) {
+            if (state.bricks.items[i].hp == 0) {
                 audio.playBrickBreak();
             } else {
                 audio.playBrickHit();
             }
 
             state.score += 1;
-            if (state.bricks[i].hp == 0) {
+            if (state.bricks.items[i].hp == 0) {
                 try pickups.spawnFromBrick(brick);
             }
 
@@ -115,7 +115,7 @@ pub fn resolveFireShotCollision(shot: *FireShot) std.mem.Allocator.Error!bool {
     const shot_left: f32 = shot.x;
     const shot_right: f32 = shot.x + shot.w;
 
-    for (state.bricks, 0..) |brick, i| {
+    for (state.bricks.items, 0..) |brick, i| {
         if (brick.hp == 0) continue;
         const col: usize = i % Config.brick_cols;
         var brick_top: f32 = brick.y;
@@ -148,7 +148,7 @@ pub fn resolveFireShotCollision(shot: *FireShot) std.mem.Allocator.Error!bool {
             while (j < mini_layout.count_per_brick) : (j += 1) {
                 const bit_shift: u3 = @intCast(j);
                 const bit = @as(u8, 1) << bit_shift;
-                if ((state.bricks[i].mini_mask & bit) == 0) continue;
+                if ((state.bricks.items[i].mini_mask & bit) == 0) continue;
 
                 const global_idx = base_idx + j;
                 const idx_f: f32 = @floatFromInt(global_idx);
@@ -162,25 +162,25 @@ pub fn resolveFireShotCollision(shot: *FireShot) std.mem.Allocator.Error!bool {
                     shot_left <= mini_right;
                 if (!overlaps_mini) continue;
 
-                state.bricks[i].mini_mask &= ~bit;
-                state.bricks[i].hp -= 1;
+                state.bricks.items[i].mini_mask &= ~bit;
+                state.bricks.items[i].hp -= 1;
                 hit_mini = true;
                 break;
             }
 
             if (!hit_mini) continue;
         } else {
-            state.bricks[i].hp -= 1;
+            state.bricks.items[i].hp -= 1;
         }
 
-        if (state.bricks[i].hp == 0) {
+        if (state.bricks.items[i].hp == 0) {
             audio.playBrickBreak();
         } else {
             audio.playBrickHit();
         }
 
         state.score += 1;
-        if (state.bricks[i].hp == 0) {
+        if (state.bricks.items[i].hp == 0) {
             try pickups.spawnFromBrick(brick);
         }
         return true;

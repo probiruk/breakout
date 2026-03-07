@@ -6,6 +6,7 @@ const EffectType = types.EffectType;
 const Ball = types.Ball;
 const FireShot = types.FireShot;
 const state = @import("./state.zig");
+const bricks = @import("./bricks.zig");
 const paddle = @import("./paddle.zig");
 const ball = @import("./ball.zig");
 const collision = @import("./collision.zig");
@@ -68,6 +69,30 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     const max_paddle_x = @as(f32, @floatFromInt(Config.screen_w)) - state.paddle_width;
     if (state.paddle_pos.x > max_paddle_x) {
         state.paddle_pos.x = @max(0.0, max_paddle_x);
+    }
+
+    if (Config.endless_row.enabled) {
+        state.survival_time += dt;
+        state.row_inject_timer -= dt;
+        while (state.row_inject_timer <= 0.0) {
+            bricks.spawnTopRowAt(Config.top_margin - Config.endless_row.row_step);
+            state.row_shift_remaining += Config.endless_row.row_step;
+            state.row_inject_timer += Config.endless_row.inject_interval_sec;
+        }
+
+        if (state.row_shift_remaining > 0.0) {
+            const anim_duration = @max(@as(f32, 0.001), Config.endless_row.inject_anim_duration_sec);
+            const shift_speed = Config.endless_row.row_step / anim_duration;
+            const shift_step = @min(state.row_shift_remaining, shift_speed * dt);
+            bricks.shiftBricksDown(shift_step);
+            state.row_shift_remaining -= shift_step;
+        }
+
+        const fail_y = state.paddle_pos.y - Config.endless_row.fail_line_margin_from_paddle;
+        if (bricks.checkFailLine(fail_y)) {
+            state.lives = 0;
+            return;
+        }
     }
 
     if (fire_paddle_active and !state.fire_mode_was_active) {

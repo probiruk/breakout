@@ -1,3 +1,4 @@
+const std = @import("std");
 const Config = @import("../config.zig").Config;
 const state = @import("./state.zig");
 const Brick = @import("../types.zig").Brick;
@@ -41,7 +42,39 @@ pub fn getMiniRowLayout(brick: Brick) struct {
     };
 }
 
+fn normalBrickWidth() f32 {
+    const sw: f32 = @as(f32, Config.screen_w);
+    const play_w: f32 = sw - (2.0 * Config.side_margin);
+    const cols_f: f32 = @as(f32, @floatFromInt(Config.brick_cols));
+    const gaps_f: f32 = @as(f32, @floatFromInt(Config.brick_cols - 1));
+    const total_gaps: f32 = Config.brick_gap * gaps_f;
+    return (play_w - total_gaps) / cols_f;
+}
+
+fn appendNormalRow(row_y: f32, hp: u8) void {
+    const brick_w = normalBrickWidth();
+    var col: usize = 0;
+    while (col < Config.brick_cols) : (col += 1) {
+        const col_f: f32 = @as(f32, @floatFromInt(col));
+        const x: f32 = Config.side_margin + col_f * (brick_w + Config.brick_gap);
+        state.bricks.append(std.heap.page_allocator, .{
+            .type = .Normal,
+            .x = x,
+            .y = row_y,
+            .w = brick_w,
+            .h = Config.brick_h,
+            .hp = hp,
+            .max_hp = hp,
+            .mini_count = 0,
+            .mini_mask = 0,
+            .effect_mask = effects.all_effect_mask,
+        }) catch @panic("OOM while appending endless row");
+    }
+}
+
 pub fn initBricks() void {
+    state.bricks.clearRetainingCapacity();
+
     const sw: f32 = @as(f32, Config.screen_w);
     const play_w: f32 = sw - (2.0 * Config.side_margin);
 
@@ -51,7 +84,6 @@ pub fn initBricks() void {
     const total_gaps: f32 = Config.brick_gap * gaps_f; // total horizontal gap space per row
     const brick_w: f32 = (play_w - total_gaps) / cols_f; // single block width
 
-    var i: usize = 0;
     var row: usize = 0;
     var row_y: f32 = Config.top_margin;
     while (row < Config.brick_rows) : (row += 1) {
@@ -70,7 +102,7 @@ pub fn initBricks() void {
             const max_hp: u8 = if (is_mini) mini_count else Config.hpForRow(row);
             const mini_mask: u8 = fullMiniMask(mini_count);
 
-            state.bricks[i] = .{
+            state.bricks.append(std.heap.page_allocator, .{
                 .type = brick_type,
                 .x = x,
                 .y = y,
@@ -81,9 +113,43 @@ pub fn initBricks() void {
                 .mini_count = mini_count,
                 .mini_mask = mini_mask,
                 .effect_mask = effects.all_effect_mask,
-            };
-            i += 1;
+            }) catch @panic("OOM while initializing bricks");
         }
         row_y += row_h + Config.brick_gap;
     }
+}
+
+pub fn initEndlessRows() void {
+    state.bricks.clearRetainingCapacity();
+
+    var row: usize = 0;
+    var row_y: f32 = Config.top_margin;
+    while (row < Config.endless_row.initial_rows) : (row += 1) {
+        appendNormalRow(row_y, Config.hpForRow(row));
+        row_y += Config.endless_row.row_step;
+    }
+}
+
+pub fn shiftBricksDown(step: f32) void {
+    for (state.bricks.items) |*brick| {
+        if (brick.hp == 0) continue;
+        brick.y += step;
+    }
+}
+
+pub fn spawnTopRow() void {
+    spawnTopRowAt(Config.top_margin);
+}
+
+pub fn spawnTopRowAt(row_y: f32) void {
+    const hp = Config.hpForRow(Config.brick_rows - 1);
+    appendNormalRow(row_y, hp);
+}
+
+pub fn checkFailLine(fail_y: f32) bool {
+    for (state.bricks.items) |brick| {
+        if (brick.hp == 0) continue;
+        if (brick.y + brick.h >= fail_y) return true;
+    }
+    return false;
 }

@@ -17,7 +17,7 @@ pub var ball_vel: Vec2 = .{
 pub var ball_size: f32 = Config.ball_radius;
 pub var extra_balls: std.ArrayList(Ball) = .{};
 
-pub var bricks: [Config.brick_count]Brick = undefined;
+pub var bricks: std.ArrayList(Brick) = .{};
 
 // pub const paddle_state: PaddleState = .Normal;
 
@@ -28,6 +28,9 @@ pub var pickups: std.ArrayList(Pickup) = .{};
 pub var fire_shots: std.ArrayList(FireShot) = .{};
 pub var fire_shot_cooldown: f32 = 0.0;
 pub var fire_mode_was_active: bool = false;
+pub var row_inject_timer: f32 = 0.0;
+pub var row_shift_remaining: f32 = 0.0;
+pub var survival_time: f32 = 0.0;
 
 pub var score: u32 = 0;
 

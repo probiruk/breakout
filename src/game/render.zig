@@ -79,6 +79,57 @@ pub fn draw() void {
         r.drawTexturePro(sheet, paddle_normal_src, paddle_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
     }
 
+    if (Config.endless_row.enabled and state.lives > 0) {
+        const fail_y = state.paddle_pos.y - Config.endless_row.fail_line_margin_from_paddle;
+        const play_left = Config.side_margin;
+        const play_right = @as(f32, @floatFromInt(Config.screen_w)) - Config.side_margin;
+        const pulse: f32 = @floatCast(0.5 + 0.5 * std.math.sin(r.getTime() * 5.0));
+        const band_alpha: u8 = @intFromFloat(40.0 + (45.0 * pulse));
+        const stripe_alpha: u8 = @intFromFloat(130.0 + (80.0 * pulse));
+
+        // Brick-only danger marker: animated hazard band within brick playfield.
+        const band_y = fail_y - 3.0;
+        r.drawRectangle(
+            @intFromFloat(play_left),
+            @intFromFloat(band_y),
+            @intFromFloat(play_right - play_left),
+            6,
+            .{ .r = 255, .g = 85, .b = 60, .a = band_alpha },
+        );
+
+        const stripe_w: f32 = 12.0;
+        const stripe_step: f32 = 24.0;
+        const edge_guard: f32 = 4.0;
+        const stripe_min_x = play_left + edge_guard;
+        const stripe_max_x = play_right - edge_guard;
+        const stripe_step_f64: f64 = stripe_step;
+        const stripe_offset: f32 = @floatCast(@mod(r.getTime() * 60.0, stripe_step_f64));
+        var stripe_x = play_left - stripe_offset;
+        while (stripe_x < play_right) : (stripe_x += stripe_step) {
+            const start_x = @max(stripe_min_x, stripe_x);
+            const end_x = @min(stripe_max_x, stripe_x + stripe_w);
+            if (end_x <= start_x) continue;
+            const stripe_start = r.Vector2{ .x = start_x, .y = fail_y };
+            const stripe_end = r.Vector2{ .x = end_x, .y = fail_y };
+            r.drawLineEx(stripe_start, stripe_end, 3.0, .{ .r = 255, .g = 230, .b = 90, .a = stripe_alpha });
+        }
+
+        const edge_h: f32 = 16.0;
+        r.drawLineEx(
+            .{ .x = play_left, .y = fail_y - edge_h * 0.5 },
+            .{ .x = play_left, .y = fail_y + edge_h * 0.5 },
+            2.0,
+            .{ .r = 255, .g = 220, .b = 140, .a = 190 },
+        );
+        r.drawLineEx(
+            .{ .x = play_right, .y = fail_y - edge_h * 0.5 },
+            .{ .x = play_right, .y = fail_y + edge_h * 0.5 },
+            2.0,
+            .{ .r = 255, .g = 220, .b = 140, .a = 190 },
+        );
+
+    }
+
     // Ball
     const ball_src = r.Rectangle{ .x = 1403, .y = 652, .width = 64, .height = 64 };
     const ball_d = state.ball_size * 2.0;
@@ -114,7 +165,7 @@ pub fn draw() void {
     }
 
     // Bricks
-    for (state.bricks, 0..) |b, i| {
+    for (state.bricks.items, 0..) |b, i| {
         if (b.hp == 0) continue;
 
         const row: usize = i / Config.brick_cols;

@@ -81,6 +81,16 @@ pub const Config = struct {
     pub const brick_rows: usize = 6;
     pub const brick_count: usize = brick_cols * brick_rows;
 
+    // Endless row-injection mode
+    pub const endless_row = struct {
+        pub const enabled: bool = true;
+        pub const initial_rows: usize = 6;
+        pub const inject_interval_sec: f32 = 8.0;
+        pub const row_step: f32 = Config.brick_h + Config.brick_gap;
+        pub const inject_anim_duration_sec: f32 = 0.35;
+        pub const fail_line_margin_from_paddle: f32 = 28.0;
+    };
+
     // Row behavior
     pub const row_hp = [_]u8{ 2, 2, 1, 1, 1, 1 };
 

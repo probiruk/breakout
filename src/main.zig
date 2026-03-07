@@ -4,6 +4,18 @@ const Config = @import("./config.zig").Config;
 const game = @import("./game/mod.zig");
 const state = @import("./game/state.zig");
 
+fn initBoardForMode() void {
+    state.survival_time = 0.0;
+    state.row_shift_remaining = 0.0;
+    if (Config.endless_row.enabled) {
+        state.row_inject_timer = Config.endless_row.inject_interval_sec;
+        game.bricks.initEndlessRows();
+    } else {
+        state.row_inject_timer = 0.0;
+        game.bricks.initBricks();
+    }
+}
+
 fn restartGame() void {
     state.score = 0;
     state.lives = 3;
@@ -18,7 +30,7 @@ fn restartGame() void {
     state.fire_shots.clearRetainingCapacity();
     state.fire_shot_cooldown = 0.0;
     state.fire_mode_was_active = false;
-    game.bricks.initBricks();
+    initBoardForMode();
 }
 
 pub fn main() !void {
@@ -39,7 +51,7 @@ pub fn main() !void {
     try game.render.initAssets();
     defer game.render.deinitAssets();
 
-    game.bricks.initBricks();
+    initBoardForMode();
     var was_game_over = false;
 
     while (!r.windowShouldClose()) {
