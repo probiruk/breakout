@@ -15,6 +15,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     const ball_size = Config.ball_radius;
     var ball_speed = Config.ball_max_speed;
     var paddle_width: f32 = Config.paddle_w;
+    var slow_ball_active = false;
     var expand_paddle_active = false;
     var shrink_paddle_active = false;
     var fire_paddle_active = false;
@@ -28,7 +29,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
                 ball_speed += 10;
             },
             EffectType.SlowBall => {
-                ball_speed -= 120;
+                slow_ball_active = true;
             },
             EffectType.ExpandPaddle => {
                 expand_paddle_active = true;
@@ -53,6 +54,8 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     } else if (shrink_paddle_active and !expand_paddle_active) {
         paddle_width = Config.paddle_shrink_w;
     }
+    const movement_factor: f32 = if (slow_ball_active) Config.slow_velocity_factor else 1.0;
+    const movement_dt: f32 = dt * movement_factor;
     ball_speed = @max(Config.ball_min_speed, ball_speed);
     state.ball_size = ball_size;
     state.paddle_width = paddle_width;
@@ -79,7 +82,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     var shot_i: usize = 0;
     while (shot_i < state.fire_shots.items.len) {
         var shot = state.fire_shots.items[shot_i];
-        shot.y += shot.vy * dt;
+        shot.y += shot.vy * movement_dt;
 
         if (shot.y + shot.h < 0) {
             _ = state.fire_shots.orderedRemove(shot_i);
@@ -95,10 +98,10 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
         shot_i += 1;
     }
 
-    try pickups.update(dt);
+    try pickups.update(movement_dt);
 
     if (state.ball_vel.x != 0 or state.ball_vel.y != 0) {
-        var next_ball_pos: Vec2 = ball.nextPos(state.ball_pos, state.ball_vel, dt);
+        var next_ball_pos: Vec2 = ball.nextPos(state.ball_pos, state.ball_vel, movement_dt);
 
         if (ball.resolveWallBounce(&state.ball_vel, ball_size, &next_ball_pos)) {
             ball.handleMainBallLoss(&next_ball_pos);
@@ -112,7 +115,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     var extra_i: usize = 0;
     while (extra_i < state.extra_balls.items.len) {
         var eb: Ball = state.extra_balls.items[extra_i];
-        var next_extra_pos = ball.nextPos(eb.pos, eb.vel, dt);
+        var next_extra_pos = ball.nextPos(eb.pos, eb.vel, movement_dt);
 
         if (ball.resolveWallBounce(&eb.vel, ball_size, &next_extra_pos)) {
             _ = state.extra_balls.orderedRemove(extra_i);

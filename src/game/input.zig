@@ -2,6 +2,7 @@ const std = @import("std");
 const r = @import("raylib");
 const Config = @import("../config.zig").Config;
 const state = @import("./state.zig");
+const effects = @import("./effects.zig");
 
 pub fn updatePaddle(dt: f32) void {
     if (r.isKeyDown(.space) and
@@ -16,7 +17,8 @@ pub fn updatePaddle(dt: f32) void {
     if (r.isKeyDown(.right)) dir += 1.0;
     if (r.isKeyDown(.left)) dir -= 1.0;
 
-    const delta = dir * Config.paddle_speed * dt;
+    const movement_factor: f32 = if (effects.hasEffect(.SlowBall)) Config.slow_velocity_factor else 1.0;
+    const delta = dir * Config.paddle_speed * movement_factor * dt;
     const next_x = state.paddle_pos.x + delta;
 
     if (next_x > 0 and next_x < @as(f32, Config.screen_w) - state.paddle_width) {
