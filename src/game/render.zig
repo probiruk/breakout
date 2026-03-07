@@ -2,6 +2,8 @@ const std = @import("std");
 const r = @import("raylib");
 const Config = @import("../config.zig").Config;
 const Theme = @import("../config.zig").Theme;
+const BrickType = @import("../types.zig").BrickType;
+const bricks = @import("./bricks.zig");
 const state = @import("./state.zig");
 
 var brick_sheet: ?r.Texture2D = null;
@@ -80,12 +82,14 @@ pub fn draw() void {
         .white,
     );
 
+    // Bricks
     for (state.bricks, 0..) |b, i| {
         if (b.hp == 0) continue;
 
         const row: usize = i / Config.brick_cols;
+        const col: usize = i % Config.brick_cols;
 
-        const clean = switch (row) {
+        const normal_clean = switch (row) {
             0 => r.Rectangle{ .x = 772, .y = 260, .width = 384, .height = 128 }, // 07 red
             1 => r.Rectangle{ .x = 772, .y = 0, .width = 384, .height = 128 }, // 09 orange
             2 => r.Rectangle{ .x = 386, .y = 390, .width = 384, .height = 128 }, // 13 yellow
@@ -93,7 +97,7 @@ pub fn draw() void {
             4 => r.Rectangle{ .x = 386, .y = 650, .width = 384, .height = 128 }, // 11 cyan
             else => r.Rectangle{ .x = 772, .y = 390, .width = 384, .height = 128 }, // 01 blue
         };
-        const cracked = switch (row) {
+        const normal_cracked = switch (row) {
             0 => r.Rectangle{ .x = 772, .y = 130, .width = 384, .height = 128 }, // 08 red cracked
             1 => r.Rectangle{ .x = 772, .y = 650, .width = 384, .height = 128 }, // 10 orange cracked
             2 => r.Rectangle{ .x = 386, .y = 260, .width = 384, .height = 128 }, // 14 yellow cracked
@@ -101,18 +105,45 @@ pub fn draw() void {
             4 => r.Rectangle{ .x = 386, .y = 520, .width = 384, .height = 128 }, // 12 cyan cracked
             else => r.Rectangle{ .x = 0, .y = 0, .width = 384, .height = 128 }, // 02 blue cracked
         };
-        const brick = if (b.max_hp == 2 and b.hp == 1) cracked else clean;
+        const mini_tiles = [_]r.Rectangle{
+            .{ .x = 1533, .y = 392, .width = 128, .height = 128 }, // 21
+            .{ .x = 1403, .y = 132, .width = 128, .height = 128 }, // 22
+            .{ .x = 1403, .y = 262, .width = 128, .height = 128 }, // 23
+            .{ .x = 1403, .y = 392, .width = 128, .height = 128 }, // 24
+            .{ .x = 1403, .y = 522, .width = 128, .height = 128 }, // 25
+            .{ .x = 1507, .y = 652, .width = 128, .height = 128 }, // 26
+            .{ .x = 1533, .y = 132, .width = 128, .height = 128 }, // 27
+            .{ .x = 1533, .y = 262, .width = 128, .height = 128 }, // 28
+            .{ .x = 1574, .y = 782, .width = 128, .height = 128 }, // 29
+            .{ .x = 1533, .y = 522, .width = 128, .height = 128 }, // 30
+        };
 
+        if (b.type == BrickType.Mini) {
+            const mini_layout = bricks.getMiniRowLayout(b);
+            const base_idx = col * mini_layout.count_per_brick;
+            var j: usize = 0;
+            while (j < mini_layout.count_per_brick) : (j += 1) {
+                const bit_shift: u3 = @intCast(j);
+                if ((b.mini_mask & (@as(u8, 1) << bit_shift)) == 0) continue;
+                const global_idx = base_idx + j;
+                const idx_f: f32 = @floatFromInt(global_idx);
+                const x = mini_layout.start_x + idx_f * (mini_layout.side + mini_layout.gap);
+                const mini_src = mini_tiles[global_idx % mini_tiles.len];
+                const mini_dst = r.Rectangle{
+                    .x = x,
+                    .y = mini_layout.start_y,
+                    .width = mini_layout.side,
+                    .height = mini_layout.side,
+                };
+                r.drawTexturePro(sheet, mini_src, mini_dst, .{ .x = 0, .y = 0 }, 0.0, .white);
+            }
+            continue;
+        }
+
+        const brick = if (b.max_hp == 2 and b.hp == 1) normal_cracked else normal_clean;
         const dst = r.Rectangle{ .x = b.x, .y = b.y, .width = b.w, .height = b.h };
 
-        r.drawTexturePro(
-            sheet,
-            brick,
-            dst,
-            .{ .x = 0, .y = 0 },
-            0.0,
-            .white,
-        );
+        r.drawTexturePro(sheet, brick, dst, .{ .x = 0, .y = 0 }, 0.0, .white);
     }
 
     // pickups

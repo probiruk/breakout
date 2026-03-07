@@ -9,31 +9,52 @@ const Vec2 = @import("./types.zig").Vec2;
 pub const Config = struct {
     // Window / timing
     pub const screen_w: i32 = 800;
-    pub const screen_h: i32 = 450;
+    pub const screen_h: i32 = 600;
     pub const fps: i32 = 60;
 
     // Paddle
-    pub const paddle_w: f32 = 70.0;
-    pub const paddle_h: f32 = 14.0;
+    pub const paddle_w: f32 = 76.0;
+    pub const paddle_h: f32 = 13.0;
     pub const paddle_speed: f32 = 400.0; // pixels per second
     pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w / 2, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
 
     // Ball
-    pub const ball_radius: f32 = 6.5;
+    pub const ball_radius: f32 = 6.0;
     pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
     pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians
     pub const launch_angle: f32 = 30.0 * (std.math.pi / 180.0); // radians
     pub const ball_start_pos: Vec2 = .{ .x = (screen_w / 2) - (paddle_w / 2), .y = (@as(f32, 0.9) * @as(f32, screen_h) - @as(f32, 10)) };
 
     // Bricks layout
-    pub const side_margin: f32 = 30.0;
-    pub const top_margin: f32 = 60.0;
-    pub const brick_gap: f32 = 6.0;
-    pub const brick_h: f32 = 18.0;
+    pub const side_margin: f32 = 32.0;
+    pub const top_margin: f32 = 68.0;
+    pub const brick_gap: f32 = 5.0;
+    pub const brick_h: f32 = 24.0;
 
     pub const brick_cols: usize = 10;
     pub const brick_rows: usize = 6;
     pub const brick_count: usize = brick_cols * brick_rows;
+
+    // Row behavior
+    pub const row_hp = [_]u8{ 2, 2, 1, 1, 1, 1 };
+
+    pub const mini_bricks = struct {
+        pub const rows = [_]usize{3};
+        pub const row_h: f32 = 36.0;
+        pub const count_per_slot: u8 = 2; // mini bricks inside one normal brick column slot
+        pub const gap_factor: f32 = 0.24; // min mini gap = brick_gap * gap_factor (higher => wider)
+    };
+
+    pub inline fn isMiniRow(row: usize) bool {
+        for (mini_bricks.rows) |mini_row| {
+            if (mini_row == row) return true;
+        }
+        return false;
+    }
+
+    pub inline fn hpForRow(row: usize) u8 {
+        return if (row < row_hp.len) row_hp[row] else 1;
+    }
 };
 
 // -----------------------------
@@ -42,7 +63,7 @@ pub const Config = struct {
 
 pub const Theme = struct {
     // Backgrounds
-    pub const bg_hex: u32 = 0x000000FF; // pure black
+    pub const bg_hex: u32 = 0x221D23FF; // dark aubergine
 
     // Player objects
     pub const paddle_hex: u32 = 0xFFFFFFFF; // white paddle
