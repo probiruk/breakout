@@ -17,7 +17,7 @@ pub fn updatePaddle(dt: f32) void {
     if (r.isKeyDown(.right)) dir += 1.0;
     if (r.isKeyDown(.left)) dir -= 1.0;
 
-    const movement_factor: f32 = if (effects.hasEffect(.SlowBall)) Config.slow_velocity_factor else 1.0;
+    const movement_factor: f32 = effects.velocityScale();
     const delta = dir * Config.paddle_speed * movement_factor * dt;
     const next_x = state.paddle_pos.x + delta;
 

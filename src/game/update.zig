@@ -16,6 +16,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     var ball_speed = Config.ball_max_speed;
     var paddle_width: f32 = Config.paddle_w;
     var slow_ball_active = false;
+    var fast_ball_active = false;
     var expand_paddle_active = false;
     var shrink_paddle_active = false;
     var fire_paddle_active = false;
@@ -26,7 +27,7 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
         switch (effect.type) {
             EffectType.MultiBall => {},
             EffectType.FastBall => {
-                ball_speed += 10;
+                fast_ball_active = true;
             },
             EffectType.SlowBall => {
                 slow_ball_active = true;
@@ -54,7 +55,12 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     } else if (shrink_paddle_active and !expand_paddle_active) {
         paddle_width = Config.paddle_shrink_w;
     }
-    const movement_factor: f32 = if (slow_ball_active) Config.slow_velocity_factor else 1.0;
+    const movement_factor: f32 = if (slow_ball_active and !fast_ball_active)
+        Config.slow_velocity_factor
+    else if (fast_ball_active and !slow_ball_active)
+        Config.fast_velocity_factor
+    else
+        1.0;
     const movement_dt: f32 = dt * movement_factor;
     ball_speed = @max(Config.ball_min_speed, ball_speed);
     state.ball_size = ball_size;

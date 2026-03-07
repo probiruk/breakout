@@ -1,4 +1,5 @@
 const std = @import("std");
+const Config = @import("../config.zig").Config;
 const Effect = @import("../types.zig").Effect;
 const EffectType = @import("../types.zig").EffectType;
 const state = @import("./state.zig");
@@ -24,6 +25,14 @@ pub fn hasEffect(etype: EffectType) bool {
     }
 
     return false;
+}
+
+pub fn velocityScale() f32 {
+    const slow_active = hasEffect(.SlowBall);
+    const fast_active = hasEffect(.FastBall);
+    if (slow_active and !fast_active) return Config.slow_velocity_factor;
+    if (fast_active and !slow_active) return Config.fast_velocity_factor;
+    return 1.0;
 }
 
 pub fn addEffect(effect: Effect) std.mem.Allocator.Error!void {

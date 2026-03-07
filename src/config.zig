@@ -40,7 +40,7 @@ pub const Config = struct {
         pub const expand_paddle: u16 = 5;
         pub const shrink_paddle: u16 = 5;
         pub const slow_ball: u16 = 3;
-        pub const fast_ball: u16 = 2;
+        pub const fast_ball: u16 = 40;
         pub const multi_ball: u16 = 10;
     };
 
@@ -64,6 +64,7 @@ pub const Config = struct {
     // Ball
     pub const ball_radius: f32 = 6.0;
     pub const slow_velocity_factor: f32 = 0.6; // scales velocity-based motion while SlowBall is active
+    pub const fast_velocity_factor: f32 = 1.4; // scales velocity-based motion while FastBall is active
     pub const ball_min_speed: f32 = 140.0; // lower clamp after speed-modifying effects
     pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
     pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians

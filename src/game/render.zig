@@ -48,7 +48,7 @@ pub fn draw() void {
     const pickup_expand_src = r.Rectangle{ .x = 1158, .y = 264, .width = 243, .height = 64 }; // 47
     const pickup_fire_src = r.Rectangle{ .x = 1158, .y = 330, .width = 243, .height = 64 }; // 48
     const fire_shot_src = r.Rectangle{ .x = 0, .y = 990, .width = 10, .height = 21 }; // 61
-    const anim_speed_factor: f32 = if (effects.hasEffect(.SlowBall)) Config.slow_velocity_factor else 1.0;
+    const anim_speed_factor: f32 = effects.velocityScale();
     const normal_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * (18.0 * anim_speed_factor))));
     const expanded_anim_t = @as(usize, @intFromFloat(@floor(r.getTime() * (12.0 * anim_speed_factor))));
     const is_fire_paddle = effects.hasEffect(.FirePaddle);
