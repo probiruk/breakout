@@ -44,6 +44,7 @@ pub fn draw() void {
     const pickup_fast_src = r.Rectangle{ .x = 349, .y = 910, .width = 243, .height = 64 }; // 42
     const paddle_expand_src = r.Rectangle{ .x = 0, .y = 910, .width = 347, .height = 64 }; // 56
     const pickup_slow_src = r.Rectangle{ .x = 1158, .y = 66, .width = 243, .height = 64 }; // 41
+    const pickup_shrink_src = r.Rectangle{ .x = 1158, .y = 198, .width = 243, .height = 64 }; // 46
     const pickup_expand_src = r.Rectangle{ .x = 1158, .y = 264, .width = 243, .height = 64 }; // 47
     const pickup_fire_src = r.Rectangle{ .x = 1158, .y = 330, .width = 243, .height = 64 }; // 48
     const fire_shot_src = r.Rectangle{ .x = 0, .y = 990, .width = 10, .height = 21 }; // 61
@@ -182,6 +183,7 @@ pub fn draw() void {
             .FastBall => pickup_fast_src,
             .SlowBall => pickup_slow_src,
             .ExpandPaddle => pickup_expand_src,
+            .ShrinkPaddle => pickup_shrink_src,
             .FirePaddle => pickup_fire_src,
         };
         const pickup_dst = r.Rectangle{

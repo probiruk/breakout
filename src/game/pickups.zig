@@ -15,6 +15,7 @@ const effect_drop_table = [_]struct {
 }{
     .{ .etype = .FirePaddle, .duration = Config.pickup_effect_durations.fire_paddle, .weight = Config.pickup_drop_weights.fire_paddle },
     .{ .etype = .ExpandPaddle, .duration = Config.pickup_effect_durations.expand_paddle, .weight = Config.pickup_drop_weights.expand_paddle },
+    .{ .etype = .ShrinkPaddle, .duration = Config.pickup_effect_durations.shrink_paddle, .weight = Config.pickup_drop_weights.shrink_paddle },
     .{ .etype = .SlowBall, .duration = Config.pickup_effect_durations.slow_ball, .weight = Config.pickup_drop_weights.slow_ball },
     .{ .etype = .FastBall, .duration = Config.pickup_effect_durations.fast_ball, .weight = Config.pickup_drop_weights.fast_ball },
     .{ .etype = .MultiBall, .duration = Config.pickup_effect_durations.multi_ball, .weight = Config.pickup_drop_weights.multi_ball },

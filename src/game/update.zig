@@ -15,6 +15,8 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
     const ball_size = Config.ball_radius;
     var ball_speed = Config.ball_max_speed;
     var paddle_width: f32 = Config.paddle_w;
+    var expand_paddle_active = false;
+    var shrink_paddle_active = false;
     var fire_paddle_active = false;
 
     var i: usize = 0;
@@ -29,7 +31,10 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
                 ball_speed -= 120;
             },
             EffectType.ExpandPaddle => {
-                paddle_width += @as(f32, 0.5) * paddle_width;
+                expand_paddle_active = true;
+            },
+            EffectType.ShrinkPaddle => {
+                shrink_paddle_active = true;
             },
             EffectType.FirePaddle => {
                 fire_paddle_active = true;
@@ -42,6 +47,11 @@ pub fn step(dt: f32) std.mem.Allocator.Error!void {
             continue;
         }
         i += 1;
+    }
+    if (expand_paddle_active and !shrink_paddle_active) {
+        paddle_width += @as(f32, 0.5) * paddle_width;
+    } else if (shrink_paddle_active and !expand_paddle_active) {
+        paddle_width = Config.paddle_shrink_w;
     }
     ball_speed = @max(Config.ball_min_speed, ball_speed);
     state.ball_size = ball_size;

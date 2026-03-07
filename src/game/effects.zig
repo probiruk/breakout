@@ -13,6 +13,7 @@ pub const all_effect_mask: u8 = effectBit(.MultiBall) |
     effectBit(.FastBall) |
     effectBit(.SlowBall) |
     effectBit(.ExpandPaddle) |
+    effectBit(.ShrinkPaddle) |
     effectBit(.FirePaddle);
 
 pub fn hasEffect(etype: EffectType) bool {

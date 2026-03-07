@@ -14,6 +14,7 @@ pub const Config = struct {
 
     // Paddle
     pub const paddle_w: f32 = 76.0;
+    pub const paddle_shrink_w: f32 = 57.0;
     pub const paddle_h: f32 = 13.0;
     pub const paddle_speed: f32 = 400.0; // pixels per second
     pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w / 2, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
@@ -37,6 +38,7 @@ pub const Config = struct {
         pub const none: u16 = 88; // default to no-drop most of the time
         pub const fire_paddle: u16 = 20;
         pub const expand_paddle: u16 = 5;
+        pub const shrink_paddle: u16 = 5;
         pub const slow_ball: u16 = 3;
         pub const fast_ball: u16 = 2;
         pub const multi_ball: u16 = 10;
@@ -46,6 +48,7 @@ pub const Config = struct {
     pub const pickup_effect_durations = struct {
         pub const fire_paddle: f32 = 6.0;
         pub const expand_paddle: f32 = 5.0;
+        pub const shrink_paddle: f32 = 5.0;
         pub const slow_ball: f32 = 5.0;
         pub const fast_ball: f32 = 5.0;
         pub const multi_ball: f32 = 0.0;

@@ -20,7 +20,7 @@ pub const Brick = struct {
 
 pub const BrickType = enum { Normal, Mini };
 
-pub const EffectType = enum { MultiBall, FastBall, SlowBall, ExpandPaddle, FirePaddle };
+pub const EffectType = enum { MultiBall, FastBall, SlowBall, ExpandPaddle, ShrinkPaddle, FirePaddle };
 
 pub const Effect = struct { type: EffectType, duration: f32, time: f32 = 0 };
 
