@@ -16,7 +16,7 @@ pub const Config = struct {
     pub const paddle_w: f32 = 76.0;
     pub const paddle_shrink_w: f32 = 57.0;
     pub const paddle_h: f32 = 13.0;
-    pub const paddle_speed: f32 = 400.0; // pixels per second
+    pub const paddle_speed: f32 = 500.0; // pixels per second
     pub const paddle_start_pos: Vec2 = .{ .x = Config.screen_w / 2 - Config.paddle_w / 2, .y = @as(f32, 0.9) * @as(f32, Config.screen_h) };
 
     // Fire mode
@@ -30,27 +30,27 @@ pub const Config = struct {
         pub const shot_speed_y: f32 = -220.0;
 
         // Firing cadence
-        pub const shot_interval: f32 = 0.32;
+        pub const shot_interval: f32 = 0.36;
     };
 
     // Pickup drop chances (relative weights)
     pub const pickup_drop_weights = struct {
-        pub const none: u16 = 88; // default to no-drop most of the time
+        pub const none: u16 = 76; // default to no-drop most of the time
         pub const fire_paddle: u16 = 20;
-        pub const expand_paddle: u16 = 5;
-        pub const shrink_paddle: u16 = 5;
-        pub const slow_ball: u16 = 3;
-        pub const fast_ball: u16 = 40;
+        pub const expand_paddle: u16 = 10;
+        pub const shrink_paddle: u16 = 4;
+        pub const slow_ball: u16 = 8;
+        pub const fast_ball: u16 = 12;
         pub const multi_ball: u16 = 10;
     };
 
     // Pickup effect durations in seconds
     pub const pickup_effect_durations = struct {
-        pub const fire_paddle: f32 = 6.0;
-        pub const expand_paddle: f32 = 5.0;
-        pub const shrink_paddle: f32 = 5.0;
-        pub const slow_ball: f32 = 5.0;
-        pub const fast_ball: f32 = 5.0;
+        pub const fire_paddle: f32 = 5.5;
+        pub const expand_paddle: f32 = 6.5;
+        pub const shrink_paddle: f32 = 4.0;
+        pub const slow_ball: f32 = 5.5;
+        pub const fast_ball: f32 = 4.0;
         pub const multi_ball: f32 = 0.0;
     };
 
@@ -63,12 +63,12 @@ pub const Config = struct {
 
     // Ball
     pub const ball_radius: f32 = 6.0;
-    pub const slow_velocity_factor: f32 = 0.6; // scales velocity-based motion while SlowBall is active
-    pub const fast_velocity_factor: f32 = 1.4; // scales velocity-based motion while FastBall is active
+    pub const slow_velocity_factor: f32 = 0.8; // scales velocity-based motion while SlowBall is active
+    pub const fast_velocity_factor: f32 = 1.2; // scales velocity-based motion while FastBall is active
     pub const ball_min_speed: f32 = 140.0; // lower clamp after speed-modifying effects
-    pub const ball_max_speed: f32 = 300.0; // clamp target speed after paddle bounce
-    pub const max_bounce_angle: f32 = 65.0 * (std.math.pi / 180.0); // radians
-    pub const launch_angle: f32 = 30.0 * (std.math.pi / 180.0); // radians
+    pub const ball_max_speed: f32 = 280.0; // clamp target speed after paddle bounce
+    pub const max_bounce_angle: f32 = 60.0 * (std.math.pi / 180.0); // radians
+    pub const launch_angle: f32 = 24.0 * (std.math.pi / 180.0); // radians
     pub const ball_start_pos: Vec2 = .{ .x = (screen_w / 2) - (paddle_w / 2), .y = (@as(f32, 0.9) * @as(f32, screen_h) - @as(f32, 10)) };
 
     // Bricks layout
@@ -84,15 +84,15 @@ pub const Config = struct {
     // Endless row-injection mode
     pub const endless_row = struct {
         pub const enabled: bool = true;
-        pub const initial_rows: usize = 6;
-        pub const inject_interval_sec: f32 = 8.0;
+        pub const initial_rows: usize = 5;
+        pub const inject_interval_sec: f32 = 9.5;
         pub const row_step: f32 = Config.brick_h + Config.brick_gap;
-        pub const inject_anim_duration_sec: f32 = 0.35;
-        pub const fail_line_margin_from_paddle: f32 = 28.0;
+        pub const inject_anim_duration_sec: f32 = 0.45;
+        pub const fail_line_margin_from_paddle: f32 = 44.0;
     };
 
     // Row behavior
-    pub const row_hp = [_]u8{ 2, 2, 1, 1, 1, 1 };
+    pub const row_hp = [_]u8{ 1, 1, 1, 1, 2, 2 };
 
     pub const mini_bricks = struct {
         pub const rows = [_]usize{3};
