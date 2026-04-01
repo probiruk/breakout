@@ -7,5 +7,4 @@
 
 <p align="center">
   <em>A simple Breakout clone built with <strong>Zig</strong> and <strong>raylib</strong>.</em><br>
-  🚧 Work in progress
 </p>
